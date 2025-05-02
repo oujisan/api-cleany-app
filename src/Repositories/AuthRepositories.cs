@@ -1,6 +1,6 @@
 ﻿namespace api_cleany_app.src.Repositories
 {
-    public class IAuthRepository
+    public class AuthRepositories
     {
     }
 }
