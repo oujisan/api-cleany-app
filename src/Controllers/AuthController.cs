@@ -54,9 +54,9 @@ namespace api_cleany_app.src.Controllers
             var requesterRole = User.FindFirst("Role")?.Value;
             if (ValidationHelper.validateUserData(user))
             {
-                if (user.Role != "User" && requesterRole != "Admin")
+                if ((user.Role == "Cleaner" || user.Role == "Admin") && requesterRole != "Admin")
                 {
-                    return Forbid("You hasn't permission to create this account");
+                    return BadRequest("You hasn't permission to create account with admin or cleaner role");
                 }
                 else
                 {
