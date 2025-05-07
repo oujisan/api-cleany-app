@@ -17,21 +17,13 @@ namespace api_cleany_app.src.Helpers
 
         public string GenerateJwtToken(User user)
         {
-            string roleName = user.RoleId switch
-            {
-                1 => "Cleaners",
-                2 => "Users",
-            };
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(configuration["Jwt:Key"]);
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(new[]
                 {
-                    new Claim("Username",user.Username),
-                    new Claim("Email",user.Email),
-                    new Claim("Password",user.Password),
-                    new Claim(ClaimTypes.Role, roleName)
+                    new Claim(ClaimTypes.Role,user.Role)
                 }),
                 Expires = DateTime.UtcNow.AddHours(1),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)

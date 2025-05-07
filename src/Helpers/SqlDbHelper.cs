@@ -15,6 +15,7 @@ namespace api_cleany_app.src.Helpers
 
         public NpgsqlCommand NpgsqlCommand(string pQuery)
         {
+            this.OpenConnection();
             return new NpgsqlCommand(pQuery, _connection);
         }
 
@@ -38,6 +39,7 @@ namespace api_cleany_app.src.Helpers
         {
             if (_connection != null)
             {
+                this.CloseConnection();
                 _connection.Dispose();
             }
         }
