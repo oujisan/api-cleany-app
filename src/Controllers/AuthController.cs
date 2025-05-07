@@ -9,7 +9,6 @@ namespace api_cleany_app.src.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private readonly string _connectionString;
         private readonly IConfiguration _configuration;
         private readonly AuthRepository _authRepository;
         private JwtHelper _jwtHelper;

@@ -15,11 +15,11 @@ namespace api_cleany_app.src.Repositories
         }
 
         private static readonly Dictionary<string, int> RoleNameToId = new()
-            {
-                { "admin", 1 },
-                { "cleaner", 2 },
-                { "user", 3 }
-            };
+        {
+            { "admin", 1 },
+            { "cleaner", 2 },
+            { "user", 3 }
+        };
 
         public bool Authentication(string email, string password, out User user)
         {
