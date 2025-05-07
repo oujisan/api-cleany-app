@@ -5,7 +5,7 @@ using api_cleany_app.src.Models;
 
 namespace api_cleany_app.src.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/auth")]
     [ApiController]
     public class AuthController : ControllerBase
     {
@@ -46,6 +46,34 @@ namespace api_cleany_app.src.Controllers
             else
             {
                 return Unauthorized($"Invalid credentials {_authRepository.GetError()}");
+            }
+        }
+        [HttpPost("register")]
+        public ActionResult register([FromBody] User user)
+        {
+            var requesterRole = User.FindFirst("Role")?.Value;
+            if (ValidationHelper.validateUserData(user))
+            {
+                if (user.Role != "User" && requesterRole != "Admin")
+                {
+                    return Forbid("You hasn't permission to create this account");
+                }
+                else
+                {
+                    var isRegistered = _authRepository.Registration(user);
+                    if (isRegistered)
+                    {
+                        return Ok("User registered successfully");
+                    }
+                    else
+                    {
+                        return BadRequest($"Registration failed: {_authRepository.GetError()}");
+                    }
+                }
+            }
+            else
+            {
+                return BadRequest($"Invalid user data{_authRepository.GetError()}");
             }
         }
     }

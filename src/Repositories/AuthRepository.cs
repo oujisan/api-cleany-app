@@ -58,37 +58,51 @@ namespace api_cleany_app.src.Repositories
             }
             catch (Exception ex)
             {
-                    return false;
+                return false;
             }
         }
 
-        //public User Registration(User user)
-        //{
-        //    string query = "INSERT INTO users (first_name, last_name, username, email, password, image_url, role_id) VALUES (@firstName, @lastName, @username, @email ,@password, @imageUrl @roleId);";
-        //}
-
-        public bool isEmailExists(string email)
+        public bool Registration(User user)
         {
-            string query = "SELECT COUNT(*) FROM users WHERE email = @email";
+            string query = "INSERT INTO users (first_name, last_name, username, email, password, image_url, role_id) VALUES (@firstName, @lastName, @username, @email ,crypt(@password, gen_salt('bf')), @imageUrl, @roleId);";
+
+            RoleNameToId.TryGetValue(user.Role.ToLower(), out int roleId);
 
             using (SqlDbHelper dbHelper = new SqlDbHelper(_connectionString))
-            using (NpgsqlCommand command = dbHelper.NpgsqlCommand(query))
+            try
             {
-                command.Parameters.AddWithValue("@email", email);
-                int count = Convert.ToInt32(command.ExecuteScalar());
-                return count > 0;
+                using (NpgsqlCommand command = dbHelper.NpgsqlCommand(query))
+                {
+                    command.Parameters.AddWithValue("@firstName", user.FirstName);
+                    command.Parameters.AddWithValue("@lastName", (object?)user.LastName ?? DBNull.Value);
+                    command.Parameters.AddWithValue("@username", user.Username);
+                    command.Parameters.AddWithValue("@email", user.Email);
+                    command.Parameters.AddWithValue("@password", user.Password);
+                    command.Parameters.AddWithValue("@imageUrl", (object?)user.ImageUrl ?? DBNull.Value);
+                    command.Parameters.AddWithValue("@roleId", roleId);
+
+                    int rowsAffected = command.ExecuteNonQuery();
+                    if (rowsAffected > 0)
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        _errorMessage = "Registration failed.";
+                        return false;
+                    }
+                }
             }
-        }
-
-        public bool isUsernameExists(string username)
-        {
-            string query = "SELECT COUNT(*) FROM users WHERE username = @username";
-            using (SqlDbHelper dbHelper = new SqlDbHelper(_connectionString))
-            using (NpgsqlCommand command = dbHelper.NpgsqlCommand(query))
+            catch (PostgresException ex) when (ex.SqlState == "23505")
             {
-                command.Parameters.AddWithValue("@username", username);
-                int count = Convert.ToInt32(command.ExecuteScalar());
-                return count > 0;
+                if (ex.ConstraintName == "users_email_key")
+                    _errorMessage = "Email already used.";
+                else if (ex.ConstraintName == "users_username_key")
+                    _errorMessage = "Username already used.";
+                else
+                    _errorMessage = "Data already exist (Duplicate).";
+
+                return false;
             }
         }
 

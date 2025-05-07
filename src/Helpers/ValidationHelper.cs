@@ -1,6 +1,4 @@
 ﻿using api_cleany_app.src.Models;
-using api_cleany_app.src.Repositories;
-using Npgsql;
 
 
 namespace api_cleany_app.src.Helpers
