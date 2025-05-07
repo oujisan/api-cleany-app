@@ -17,7 +17,6 @@ namespace api_cleany_app.src.Controllers
         public AuthController(IConfiguration configuration, AuthRepository authRepository)
         {
             _configuration = configuration;
-            _connectionString = configuration.GetConnectionString("LocalConnection");
             _authRepository = authRepository;
         }
 

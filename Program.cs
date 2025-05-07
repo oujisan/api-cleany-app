@@ -3,12 +3,15 @@ using Microsoft.OpenApi.Models;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using System.Text;
+using api_cleany_app.src.Helpers;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Database Connection
+DbConfig.Init(builder.Configuration);
+
 // Add services to the container.
 builder.Services.AddScoped<AuthRepository>();
-
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
