@@ -108,6 +108,29 @@ namespace api_cleany_app.src.Repositories
                     return false;
                 }
         }
+
+        public string GetUsernameByEmail(string email)
+        {
+            string query = "SELECT username FROM users WHERE email = @Email";
+            using (SqlDbHelper dbHelper = new SqlDbHelper(_connectionString))
+            {
+                try
+                {
+                    using (NpgsqlCommand command = dbHelper.NpgsqlCommand(query))
+                    {
+                        command.Parameters.AddWithValue("@Email", email);
+                        string username = command.ExecuteScalar()?.ToString();
+                        return username ?? string.Empty;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _errorMessage = ex.Message;
+                    return string.Empty;
+                }
+            }
+        }
+
         public bool IsEmailExist(string email)
         {
             string query = "SELECT COUNT(*) FROM users WHERE email = @Email";

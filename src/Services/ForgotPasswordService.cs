@@ -16,7 +16,7 @@ namespace api_cleany_app.src.Services
             _cache = cache;
         }
 
-        public async Task<bool> SendVerificationEmailAsync(string email, string verificationCode)
+        public async Task<bool> SendVerificationEmailAsync(string username, string email, string verificationCode)
         {
             _cache.Set($"otp_code_{email}", verificationCode, TimeSpan.FromMinutes(10));
             var smtpClient = new SmtpClient(_config["Smtp:Host"])
@@ -28,11 +28,32 @@ namespace api_cleany_app.src.Services
 
             var mailMessage = new MailMessage
             {
-                From = new MailAddress(_config["Smtp:Email"]),
-                Subject = "Verification Code Reset Password",
-                Body = $"Your verification code is: {verificationCode}",
+                From = new MailAddress(_config["Smtp:Email"], "Cleany App"),
+                Subject = "Cleany App - Password Reset Verification Code",
                 IsBodyHtml = true,
+                Body = $@"
+                    <html>
+                        <body style='font-family: Arial, sans-serif; line-height: 1.6; color: #333;'>
+                            <p>Hi {username},</p>
+
+                            <p>We received a request to reset your Cleany App account password.</p>
+
+                            <p><strong>Your verification code is:</strong></p>
+                            <h3 style='color: #009688;'>{verificationCode}</h3>
+
+                            <p>This code will expire in 10 minutes. Please do not share it with anyone.</p>
+
+                            <p>If you did not request this, you can safely ignore this message.</p>
+
+                            <p>Thank you,<br/>
+                            The Cleany App Team</p>
+
+                            <hr/>
+                            <small>This is an automated message. Please do not reply to this email.</small>
+                        </body>
+                    </html>"
             };
+
             mailMessage.To.Add(email);
 
             try

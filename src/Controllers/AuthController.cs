@@ -92,8 +92,9 @@ namespace api_cleany_app.src.Controllers
                 return BadRequest($"Email not found: {_authRepository.GetError()}");
             }
 
+            string username = _authRepository.GetUsernameByEmail(user.Email);
             string verificationCode = _forgotPasswordService.GenerateVerificationCode();
-            bool isEmailSent = await _forgotPasswordService.SendVerificationEmailAsync(user.Email, verificationCode);
+            bool isEmailSent = await _forgotPasswordService.SendVerificationEmailAsync(username, user.Email, verificationCode);
 
             if (isEmailSent)
             {
