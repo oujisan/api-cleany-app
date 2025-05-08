@@ -131,49 +131,6 @@ namespace api_cleany_app.src.Repositories
             }
         }
 
-
-        //public bool IsTokenValid(string verificationCode)
-        //{
-        //    string query = "SELECT COUNT(*) FROM users WHERE otp_code = @VerificationCode AND expires_at > NOW()";
-
-        //    using (SqlDbHelper dbHelper = new SqlDbHelper(_connectionString))
-        //        try
-        //        {
-        //            using (NpgsqlCommand command = dbHelper.NpgsqlCommand(query))
-        //            {
-        //                command.Parameters.AddWithValue("@VerificationCode", verificationCode);
-        //                int count = Convert.ToInt32(command.ExecuteScalar());
-        //                return count > 0;
-        //            }
-        //        }
-        //        catch (Exception ex)
-        //        {
-        //            _errorMessage = ex.Message;
-        //            return false;
-        //        }
-        //}
-
-        //public bool SaveToken(string email, string verificationCode)
-        //{
-        //    string query = "INSERT INTO password_reset_tokens (email, otp_code, expires_at, is_verified) VALUES (@Email, @OtpCode, NOW() + INTERVAL '10 minutes', false);";
-        //    using (SqlDbHelper dbHelper = new SqlDbHelper(_connectionString))
-        //        try
-        //        {
-        //            using (NpgsqlCommand command = dbHelper.NpgsqlCommand(query))
-        //            {
-        //                command.Parameters.AddWithValue("@Email", email);
-        //                command.Parameters.AddWithValue("@VerificationCode", verificationCode);
-        //                int rowsAffected = command.ExecuteNonQuery();
-        //                return rowsAffected > 0;
-        //            }
-        //        }
-        //        catch (Exception ex)
-        //        {
-        //            _errorMessage = ex.Message;
-        //            return false;
-        //        }
-        //}
-
         public bool ResetPassword(ResetPassword resetPassword)
         {
             string query_reset_password = "UPDATE users SET password = crypt(@NewPassword, gen_salt('bf')) WHERE email = @Email";
