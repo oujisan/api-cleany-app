@@ -73,6 +73,33 @@ namespace api_cleany_app.src.Controllers
             }
         }
 
+        [HttpPost("create")]
+        public ActionResult addUser([FromBody]User user)
+        {
+            bool dataUser = _service.addUser(user);
+
+            if (dataUser)
+            {
+                return Ok(new ApiResponse<object>
+                {
+                    Success = true,
+                    Message = "User added successfull",
+                    Data = null,
+                    Error = null
+                });
+            }
+            else
+            {
+                return BadRequest(new ApiResponse<object>
+                {
+                    Success = true,
+                    Message = "Failed added user",
+                    Data = null,
+                    Error = _service.GetError()
+                });
+            }
+        }
+
         [HttpPut("update/{userId}")]
         public ActionResult updateUser([FromBody] User user, int userId)
         {

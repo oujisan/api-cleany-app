@@ -96,7 +96,7 @@ namespace api_cleany_app.src.Services
             return user;
         }
 
-        public bool AddUser(User user)
+        public bool addUser(User user)
         {
             string query = @"
                 INSERT INTO users 
