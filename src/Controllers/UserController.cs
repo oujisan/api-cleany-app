@@ -6,7 +6,7 @@ using api_cleany_app.src.Models;
 namespace api_cleany_app.src.Controllers
 {
     [Route("api/user")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "admin")]
     [ApiController]
     public class UserController: ControllerBase
     {

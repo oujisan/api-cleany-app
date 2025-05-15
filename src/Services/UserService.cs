@@ -21,7 +21,7 @@ namespace api_cleany_app.src.Services
         public List<User> getAllUser()
         {
             List<User> users = new List<User>();
-            string query = @"SELECT user_id, username, first_name, last_name, email, password, r.name AS role_name, s.name AS shift_name
+            string query = @"SELECT user_id, username, first_name, last_name, email, password, image_url,r.name AS role_name, s.name AS shift_name
               FROM users u
               JOIN roles r ON u.role_id = r.role_id
               LEFT JOIN shifts s ON u.shift_id = s.shift_id
@@ -42,10 +42,10 @@ namespace api_cleany_app.src.Services
                             FirstName = reader.GetString(2),
                             LastName = reader.IsDBNull(3) ? string.Empty : reader.GetString(3),
                             Email = reader.GetString(4),
-                            ImageUrl = reader.IsDBNull(5) ? string.Empty : reader.GetString(5),
-                            Password = reader.GetString(6),
+                            Password = reader.GetString(5),
+                            ImageUrl = reader.IsDBNull(6) ? string.Empty : reader.GetString(6),
                             Role = reader.GetString(7),
-                            Shift = reader.IsDBNull(7) ? string.Empty : reader.GetString(7),
+                            Shift = reader.IsDBNull(8) ? string.Empty : reader.GetString(8),
                         });
                     }
                 }
@@ -60,32 +60,36 @@ namespace api_cleany_app.src.Services
         public User getUserById(int userId)
         {
             User user = null;
-            string query = @"SELECT user_id, username, first_name, last_name, email, password, r.name role_name, s.name AS shift_name
-                FROM users u
-                JOIN roles r ON u.role_id = r.role_id
-                LEFT JOIN shifts s ON u.shift_id = s.shift_id
-                WHERE user_id = @user_id";
+            string query = @"SELECT user_id, username, first_name, last_name, email, password, image_url,r.name AS role_name, s.name AS shift_name
+              FROM users u
+              JOIN roles r ON u.role_id = r.role_id
+              LEFT JOIN shifts s ON u.shift_id = s.shift_id
+              WHERE user_id = @userId";
 
             using (SqlDbHelper sqlDbHelper = new SqlDbHelper(_connectionString))
             try
             {
                 using (NpgsqlCommand command = sqlDbHelper.NpgsqlCommand(query))
-                using (NpgsqlDataReader reader = command.ExecuteReader())
                 {
-                    if (reader.Read())
+                    command.Parameters.AddWithValue("userId", userId);
+                    using (NpgsqlDataReader reader = command.ExecuteReader())
                     {
-                        user = new User()
+
+                        if (reader.Read())
                         {
-                            UserId = reader.GetInt32(0),
-                            Username = reader.GetString(1),
-                            FirstName = reader.GetString(2),
-                            LastName = reader.IsDBNull(3) ? string.Empty : reader.GetString(3),
-                            Email = reader.GetString(4),
-                            ImageUrl = reader.IsDBNull(5) ? string.Empty : reader.GetString(5),
-                            Password = reader.GetString(6),
-                            Role = reader.GetString(7),
-                            Shift = reader.IsDBNull(7) ? string.Empty : reader.GetString(7),
-                        };
+                            user = new User()
+                            {
+                                UserId = reader.GetInt32(0),
+                                Username = reader.GetString(1),
+                                FirstName = reader.GetString(2),
+                                LastName = reader.IsDBNull(3) ? string.Empty : reader.GetString(3),
+                                Email = reader.GetString(4),
+                                Password = reader.GetString(5),
+                                ImageUrl = reader.IsDBNull(6) ? string.Empty : reader.GetString(5),
+                                Role = reader.GetString(7),
+                                Shift = reader.IsDBNull(8) ? string.Empty : reader.GetString(8),
+                            };
+                        }
                     }
                 }
             }
