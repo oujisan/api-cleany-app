@@ -85,7 +85,6 @@ namespace api_cleany_app.src.Services
                             Password = reader.GetString(6),
                             Role = reader.GetString(7),
                             Shift = reader.IsDBNull(7) ? string.Empty : reader.GetString(7),
-
                         };
                     }
                 }
@@ -154,13 +153,71 @@ namespace api_cleany_app.src.Services
             }
         }
 
-        public bool updateUser()
+        public bool updateUser(User user)
         {
+            string query = @"UPDATE users SET
+                first_name = @firstName,
+                last_name = @lastName,
+                username = @username,
+                email = @email,
+                role_id = @roleId,
+                shift_id = @shiftId,
+                updated_at = NOW()
+                WHERE user_id = @userId";
+
+            int? roleId = _roleService.getRoleIdByName(user.Role);
+            if (roleId == null)
+            {
+                _errorMessage = $"Role '{user.Role}' was not found in the database.";
+                return false;
+            }
+
+            int? shiftId = _shiftService.getShiftIdByName(user.Shift);
+
+            using (SqlDbHelper sqlDbHelper = new SqlDbHelper(_connectionString))
+            try
+            {
+                using (NpgsqlCommand command = sqlDbHelper.NpgsqlCommand(query))
+                {
+                    command.Parameters.AddWithValue("userId", user.UserId);
+                    command.Parameters.AddWithValue("firstName", user.FirstName);
+                    command.Parameters.AddWithValue("lastName", (object?)user.LastName ?? DBNull.Value);
+                    command.Parameters.AddWithValue("username", user.Username);
+                    command.Parameters.AddWithValue("email", user.Email);
+                    command.Parameters.AddWithValue("roleId", roleId);
+                    command.Parameters.AddWithValue("shiftId", (object?)shiftId ?? DBNull.Value);
+
+                    var result = command.ExecuteNonQuery();
+                    return result > 0;
+                }
+            }
+            catch (Exception e)
+            {
+                _errorMessage = e.Message;
+            }
             return false;
         }
 
-        public bool deleteUser()
+        public bool deleteUser(int userId)
         {
+            string query = "DELETE FROM users WHERE user_id = @UserId";
+
+            using (SqlDbHelper sqlDbHelper = new SqlDbHelper(_connectionString))
+                try
+                {
+                    using (NpgsqlCommand command = sqlDbHelper.NpgsqlCommand(query))
+                    {
+                        command.Parameters.AddWithValue("UserId", userId);
+
+                        int result = command.ExecuteNonQuery();
+                        return result > 0;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _errorMessage = ex.Message;
+                }
+
             return false;
         }
     }
