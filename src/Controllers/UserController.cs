@@ -26,11 +26,23 @@ namespace api_cleany_app.src.Controllers
 
             if (users != null)
             {
-                return Ok(users);
+                return Ok(new ApiResponse<List<User>>
+                {
+                    Success = true,
+                    Message = "Users fetched successfully",
+                    Data = users,
+                    Error = null,
+                });
             }
             else
             {
-                return BadRequest($"Failed fetch all user: {_service.GetError()}");
+                return BadRequest(new ApiResponse<List<User>>
+                {
+                    Success = false,
+                    Message = $"Failed fetch users.",
+                    Data = null,
+                    Error = _service.GetError(),
+                });
             }
         }
 
@@ -41,11 +53,23 @@ namespace api_cleany_app.src.Controllers
 
             if (user != null)
             {
-                return Ok(user);
+                return Ok(new ApiResponse<User>
+                {
+                    Success = true,
+                    Message = $"Get user with ID {user.UserId} successfull.",
+                    Data = user,
+                    Error = null,
+                });
             }
             else
             {
-                return BadRequest($"Failed to fetch user data with id {userId}: {_service.GetError()}");
+                return BadRequest(new ApiResponse<User>
+                {
+                    Success = false,
+                    Message = $"Failed to fetch user data with id {userId}",
+                    Data = null,
+                    Error = _service.GetError(),
+                });
             }
         }
 
@@ -55,11 +79,23 @@ namespace api_cleany_app.src.Controllers
             bool dataUser = _service.updateUser(user, userId);
             if (dataUser)
             {
-                return Ok("User Updated Successfull");
+                return Ok(new ApiResponse<object>
+                {
+                    Success = true,
+                    Message = $"User with ID {userId} Updated Successfull",
+                    Data = null,
+                    Error = null
+                });
             }
             else
             {
-                return BadRequest($"Failed Add User: {_service.GetError()}");
+                return BadRequest(new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = $"Failed Updated User with ID {userId}",
+                    Data = null,
+                    Error = _service.GetError()
+                });
             }
         }
 
@@ -69,11 +105,23 @@ namespace api_cleany_app.src.Controllers
             bool dataUser = _service.deleteUser(userId);
             if (dataUser)
             {
-                return Ok("User Deleted Successfull");
+                return Ok(new ApiResponse<object>
+                {
+                    Success = true,
+                    Message = $"User with ID {userId} Deleted Successfull",
+                    Data = null,
+                    Error = null
+                });
             }
             else
             {
-                return BadRequest($"Failed Delete User: {_service.GetError()}");
+                return BadRequest(new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = $"Failed Delete User with ID {userId}",
+                    Data = null,
+                    Error = _service.GetError()
+                });
             }
         }
     }
