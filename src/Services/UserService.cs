@@ -153,7 +153,7 @@ namespace api_cleany_app.src.Services
             }
         }
 
-        public bool updateUser(User user)
+        public bool updateUser(User user, int userId)
         {
             string query = @"UPDATE users SET
                 first_name = @firstName,
@@ -179,7 +179,7 @@ namespace api_cleany_app.src.Services
             {
                 using (NpgsqlCommand command = sqlDbHelper.NpgsqlCommand(query))
                 {
-                    command.Parameters.AddWithValue("userId", user.UserId);
+                    command.Parameters.AddWithValue("userId", userId);
                     command.Parameters.AddWithValue("firstName", user.FirstName);
                     command.Parameters.AddWithValue("lastName", (object?)user.LastName ?? DBNull.Value);
                     command.Parameters.AddWithValue("username", user.Username);
@@ -220,5 +220,7 @@ namespace api_cleany_app.src.Services
 
             return false;
         }
+
+        public string GetError() => _errorMessage;
     }
 }
