@@ -1,8 +1,6 @@
-using api_cleany_app.src.Repositories;
 using Microsoft.OpenApi.Models;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.Extensions.Caching.Memory;
 using System.Text;
 using api_cleany_app.src.Helpers;
 using api_cleany_app.src.Services;
@@ -13,8 +11,10 @@ var builder = WebApplication.CreateBuilder(args);
 DbConfig.Init(builder.Configuration);
 
 // Add services to the container.
-builder.Services.AddScoped<AuthRepository>();
-builder.Services.AddScoped<ForgotPasswordService>();
+builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<RoleService>();
+builder.Services.AddScoped<ShiftService>();
 
 
 builder.Services.AddControllers();

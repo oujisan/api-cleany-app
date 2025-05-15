@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using api_cleany_app.src.Repositories;
 using api_cleany_app.src.Helpers;
 using api_cleany_app.src.Models;
 using api_cleany_app.src.Services;
@@ -12,24 +11,22 @@ namespace api_cleany_app.src.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IConfiguration _configuration;
-        private readonly AuthRepository _authRepository;
+        private readonly AuthService _authService;
         private readonly IMemoryCache _cache;
         private JwtHelper _jwtHelper;
-        private readonly ForgotPasswordService _forgotPasswordService;
 
-        public AuthController(IConfiguration configuration, AuthRepository authRepository, IMemoryCache memoryCache, ForgotPasswordService forgotPasswordService)
+        public AuthController(IConfiguration configuration, AuthService authService, IMemoryCache memoryCache)
         {
             _configuration = configuration;
-            _authRepository = authRepository;
+            _authService = authService;
             _cache = memoryCache;
-            _forgotPasswordService = forgotPasswordService;
         }
 
         [HttpPost("login")]
         public ActionResult login([FromBody] Login login)
         {
             User user = null;
-            var isAuthenticated = _authRepository.Authentication(login.Email, login.Password, out user);
+            var isAuthenticated = _authService.Authentication(login.Email, login.Password, out user);
             if (isAuthenticated)
             {
                 _jwtHelper = new JwtHelper(_configuration);
@@ -49,7 +46,7 @@ namespace api_cleany_app.src.Controllers
             }
             else
             {
-                return Unauthorized($"Invalid credentials {_authRepository.GetError()}");
+                return Unauthorized($"Invalid credentials {_authService.GetError()}");
             }
         }
 
@@ -65,50 +62,50 @@ namespace api_cleany_app.src.Controllers
                 }
                 else
                 {
-                    var isRegistered = _authRepository.Registration(user);
+                    var isRegistered = _authService.Registration(user);
                     if (isRegistered)
                     {
                         return Ok("User registered successfully");
                     }
                     else
                     {
-                        return BadRequest($"Registration failed: {_authRepository.GetError()}");
+                        return BadRequest($"Registration failed: {_authService.GetError()}");
                     }
                 }
             }
             else
             {
-                return BadRequest($"Invalid user data{_authRepository.GetError()}");
+                return BadRequest($"Invalid user data{_authService.GetError()}");
             }
         }
 
         [HttpPost("forgot-password")]
         public async Task<ActionResult> ForgotPassword([FromBody] ForgotPassword user)
         {
-            bool emailExists = _authRepository.IsEmailExist(user.Email);
+            bool emailExists = _authService.IsEmailExist(user.Email);
 
-            if (!_authRepository.IsEmailExist(user.Email))
+            if (!_authService.IsEmailExist(user.Email))
             {
-                return BadRequest($"Email not found: {_authRepository.GetError()}");
+                return BadRequest($"Email not found: {_authService.GetError()}");
             }
 
-            string username = _authRepository.GetUsernameByEmail(user.Email);
-            string verificationCode = _forgotPasswordService.GenerateVerificationCode();
-            bool isEmailSent = await _forgotPasswordService.SendVerificationEmailAsync(username, user.Email, verificationCode);
+            string username = _authService.GetUsernameByEmail(user.Email);
+            string verificationCode = _authService.GenerateVerificationCode();
+            bool isEmailSent = await _authService.SendVerificationEmailAsync(username, user.Email, verificationCode);
 
             if (isEmailSent)
             {
                 return Ok("Verification code sent to your email.");
             }
 
-            return BadRequest($"Failed to send email: {_forgotPasswordService.GetError()}");
+            return BadRequest($"Failed to send email: {_authService.GetError()}");
         }
 
 
         [HttpPost("verify")]
         public ActionResult VerifyOtp([FromBody] OtpVerifyRequest request)
         {
-            bool isValid = _forgotPasswordService.ValidateOtpToken(request.Email, request.Code);
+            bool isValid = _authService.ValidateOtpToken(request.Email, request.Code);
 
             if (isValid)
             {
@@ -132,7 +129,7 @@ namespace api_cleany_app.src.Controllers
                 return BadRequest("Invalid password format. Ensure the password meets the required criteria.");
             }
 
-            bool isPasswordReset = _authRepository.ResetPassword(resetPassword);
+            bool isPasswordReset = _authService.ResetPassword(resetPassword);
             if (isPasswordReset)
             {
                 _cache.Remove($"otp_verified_{resetPassword.Email}");
@@ -140,7 +137,7 @@ namespace api_cleany_app.src.Controllers
                 return Ok("Password reset successfully.");
             }
 
-            return BadRequest($"Failed to reset password: {_authRepository.GetError()}");
+            return BadRequest($"Failed to reset password: {_authService.GetError()}");
         }
 
     }
