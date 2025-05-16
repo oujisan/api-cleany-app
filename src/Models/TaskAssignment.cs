@@ -1,13 +1,14 @@
 ﻿namespace api_cleany_app.src.Models
 {
-    public class TaskAssigment
+    public class TaskAssignment
     {
         public int AssigmentId { get; set; }
-        public TaskForm TaskForm { get; set; }
-        public string? ImageUrl { get; set; }
+        public TaskDto Task { get; set; }
         public string Date { get; set; }
-        public string WorkedBy { get; set; }
         public string Status { get; set; }
+        public string WorkedBy { get; set; }
+        public string? ProofImageUrl { get; set; }
+        public string? CreatedAt { get; set; }
         public string? AssigmentAt { get; set; }
         public string? CompleteAt { get; set; }
     }
