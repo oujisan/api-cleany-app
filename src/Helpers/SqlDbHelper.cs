@@ -5,7 +5,8 @@ namespace api_cleany_app.src.Helpers
     public class SqlDbHelper : IDisposable
     {
         private readonly NpgsqlConnection _connection;
-        public string _connectionString;
+        private string _connectionString;
+        private string _errorMessage = string.Empty;
 
         public SqlDbHelper(string connectionString)
         {
@@ -15,8 +16,16 @@ namespace api_cleany_app.src.Helpers
 
         public NpgsqlCommand NpgsqlCommand(string pQuery)
         {
-            this.OpenConnection();
-            return new NpgsqlCommand(pQuery, _connection);
+            try
+            {
+                this.OpenConnection();
+                return new NpgsqlCommand(pQuery, _connection);
+            }
+            catch (Exception ex)
+            {
+                _errorMessage = ex.Message;
+            }
+            return null;
         }
 
         public void OpenConnection()
@@ -34,6 +43,8 @@ namespace api_cleany_app.src.Helpers
                 _connection.Close();
             }
         }
+
+        public string getError() => _errorMessage;
 
         public void Dispose()
         {

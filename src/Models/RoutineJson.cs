@@ -1,6 +1,6 @@
 ﻿namespace api_cleany_app.src.Models
 {
-    public class RoutineTask
+    public class RoutineJson
     {
         public string? Time { get; set; }
         public string? StartDate { get; set; }

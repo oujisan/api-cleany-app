@@ -9,6 +9,6 @@
         public string CreatedBy { get; set; }   
         public string TaskType { get; set; }
         public AreaDto Area { get; set; }
-        public RoutineTask Routine { get; set; }
+        public RoutineJson Routine { get; set; }
     }
 }

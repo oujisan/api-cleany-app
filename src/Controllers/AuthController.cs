@@ -32,21 +32,32 @@ namespace api_cleany_app.src.Controllers
                 _jwtHelper = new JwtHelper(_configuration);
 
                 var token = _jwtHelper.GenerateJwtToken(user);
-                return Ok(new
+                return Ok(new ApiResponse<object>
                 {
-                    token = token,
-                    user = new
+                    Success = true,
+                    Message = "Login Successfull",
+                    Data = new
                     {
-                        user.UserId,
-                        user.Username,
-                        user.Email,
-                        user.Role
-                    }
+                        token = token,
+                        user = new
+                        {
+                            user.UserId,
+                            user.Username,
+                            user.Role
+                        }
+                    },
+                    Error = null,
                 });
             }
             else
             {
-                return Unauthorized($"Invalid credentials {_authService.GetError()}");
+                return BadRequest(new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = "Login Failed",
+                    Data = null,
+                    Error = _authService.GetError()
+                });
             }
         }
 

@@ -17,6 +17,7 @@ builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<RoleService>();
 builder.Services.AddScoped<ShiftService>();
 builder.Services.AddScoped<TaskService>();
+builder.Services.AddScoped<TaskAssignmentService>();
 
 
 builder.Services.AddControllers();

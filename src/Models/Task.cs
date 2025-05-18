@@ -9,7 +9,7 @@
         public string CreatedBy { get; set; }
         public string TaskType { get; set; }
         public AreaDto Area { get; set; }
-        public RoutineTask? Routine { get; set; }
+        public RoutineJson? Routine { get; set; }
         public string CreatedAt { get; set; }
         public string UpdatdAt { get; set; }
     }

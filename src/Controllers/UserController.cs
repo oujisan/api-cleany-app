@@ -8,7 +8,7 @@ namespace api_cleany_app.src.Controllers
     [Route("api/user")]
     [Authorize(Roles = "admin")]
     [ApiController]
-    public class UserController: ControllerBase
+    public class UserController : ControllerBase
     {
         private readonly UserService _service;
         private readonly IConfiguration _configuration;
@@ -73,8 +73,8 @@ namespace api_cleany_app.src.Controllers
             }
         }
 
-        [HttpPost("create")]
-        public ActionResult addUser([FromBody]User user)
+        [HttpPost("add")]
+        public ActionResult addUser([FromBody] User user)
         {
             bool dataUser = _service.addUser(user);
 

@@ -21,7 +21,7 @@ namespace api_cleany_app.src.Services
         public List<User> getAllUser()
         {
             List<User> users = new List<User>();
-            string query = @"SELECT user_id, username, first_name, last_name, email, password, image_url,r.name AS role_name, s.name AS shift_name
+            string query = @"SELECT user_id, username, first_name, last_name, email, password, image_url,r.name AS role_name, s.name AS shift_name, created_at, updated_at
               FROM users u
               JOIN roles r ON u.role_id = r.role_id
               LEFT JOIN shifts s ON u.shift_id = s.shift_id
@@ -57,10 +57,31 @@ namespace api_cleany_app.src.Services
             return users;
         }
 
+        public int getUserByUsername(string username)
+        {
+            string query = "SELECT user_id FROM users WHERE LOWER(username) = LOWER(@Username)";
+            
+            using(SqlDbHelper sqlDbHelper=new SqlDbHelper(_connectionString))
+            try
+            {
+                using (NpgsqlCommand command = sqlDbHelper.NpgsqlCommand(query))
+                {
+                    command.Parameters.AddWithValue("Username", username);
+                    var result = command.ExecuteScalar();
+                    return result != null ? Convert.ToInt32(result) : 0;
+                }
+            }
+            catch (Exception e)
+            {
+                _errorMessage = e.Message;
+            }
+            return 0;
+        }
+
         public User getUserById(int userId)
         {
             User user = null;
-            string query = @"SELECT user_id, username, first_name, last_name, email, password, image_url,r.name AS role_name, s.name AS shift_name
+            string query = @"SELECT user_id, username, first_name, last_name, email, password, image_url,r.name AS role_name, s.name AS shift_name, created_at, updated_at
               FROM users u
               JOIN roles r ON u.role_id = r.role_id
               LEFT JOIN shifts s ON u.shift_id = s.shift_id
@@ -95,7 +116,7 @@ namespace api_cleany_app.src.Services
             }
             catch (Exception ex)
             {
-
+                _errorMessage = ex.Message;
             }
             return user;
         }
@@ -206,21 +227,21 @@ namespace api_cleany_app.src.Services
         {
             string query = "DELETE FROM users WHERE user_id = @UserId";
 
-            using (SqlDbHelper sqlDbHelper = new SqlDbHelper(_connectionString))
-                try
+            try
+            {
+                using (SqlDbHelper sqlDbHelper = new SqlDbHelper(_connectionString))
+                using (NpgsqlCommand command = sqlDbHelper.NpgsqlCommand(query))
                 {
-                    using (NpgsqlCommand command = sqlDbHelper.NpgsqlCommand(query))
-                    {
-                        command.Parameters.AddWithValue("UserId", userId);
+                    command.Parameters.AddWithValue("UserId", userId);
 
-                        int result = command.ExecuteNonQuery();
-                        return result > 0;
-                    }
+                    int result = command.ExecuteNonQuery();
+                    return result > 0;
                 }
-                catch (Exception ex)
-                {
-                    _errorMessage = ex.Message;
-                }
+            }
+            catch (Exception ex)
+            {
+                _errorMessage = ex.Message;
+            }
 
             return false;
         }
