@@ -349,7 +349,7 @@ namespace api_cleany_app.src.Services
             {
                 _errorMessage = ex.Message;
             }
-            return (taskId, startDate);
+            return 0;
         }
 
         public bool updateReportTask(ReportTaskDto task, int taskId)

@@ -175,28 +175,41 @@ namespace api_cleany_app.src.Controllers
             var username = User.Identity?.Name;
             int userId = _userService.getUserByUsername(username);
 
-            int taskId = _service.addRoutineTask(task, userId);
+            int taskId = _service.addRoutineTask(task, userId, out DateOnly startDate);
             if (taskId != 0)
             {
-                bool result = _assignmentService.AddAssignmentTask(taskId,1);
-                if (result)
+                if (startDate == DateOnly.FromDateTime(DateTime.Today))
+                {
+                    bool result = _assignmentService.AddAssignmentTask(taskId, 1);
+                    if (result)
+                    {
+                        return Ok(new ApiResponse<object>
+                        {
+                            Success = true,
+                            Message = "Add routine task and assignment successfull",
+                            Data = null,
+                            Error = null,
+                        });
+                    }
+                    else
+                    {
+                        return BadRequest(new ApiResponse<object>
+                        {
+                            Success = false,
+                            Message = "Add routine task assignment failed",
+                            Data = null,
+                            Error = _service.getError()
+                        });
+                    }
+                }
+                else
                 {
                     return Ok(new ApiResponse<object>
                     {
                         Success = true,
-                        Message = "Add routine task and assignment successfull",
+                        Message = "Add routine task successfull",
                         Data = null,
                         Error = null,
-                    });
-                }
-                else
-                {
-                    return BadRequest(new ApiResponse<object>
-                    {
-                        Success = false,
-                        Message = "Add routine task assignment failed",
-                        Data = null,
-                        Error = _service.getError()
                     });
                 }
             }
