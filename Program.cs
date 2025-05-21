@@ -32,7 +32,7 @@ builder.Services.AddSwaggerGen(
         {
             Title = "API Cleany App",
             Version = "v1",
-            Description = "API Cleany App"
+            Description = "API Cleany App: Sistem Tugas Kebersihan Fakultas Berbasis Jadwal Rutin Dan Laporan Insidental Dengan Verifikasi Foto"
         });
 
         option.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
@@ -89,7 +89,7 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
-    app.UseDeveloperExceptionPage(); // Tampilkan stack trace
+    app.UseDeveloperExceptionPage();
 }
 
 

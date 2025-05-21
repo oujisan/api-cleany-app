@@ -72,7 +72,7 @@ namespace api_cleany_app.src.Services
                                     TaskId = reader.GetInt32(1),
                                     Title = reader.GetString(2),
                                     Description = reader.IsDBNull(3) ? null : reader.GetString(3),
-                                    ImageUrl = reader.IsDBNull(4) ? null : reader.GetString(4),
+                                    TaskImageUrl = reader.IsDBNull(4) ? null : reader.GetString(4).Split(',').ToList(),
                                     CreatedBy = reader.GetString(5),
                                     TaskType = reader.GetString(6),
                                     Area = new AreaDto
@@ -157,7 +157,7 @@ namespace api_cleany_app.src.Services
                                     TaskId = reader.GetInt32(1),
                                     Title = reader.GetString(2),
                                     Description = reader.IsDBNull(3) ? null : reader.GetString(3),
-                                    ImageUrl = reader.IsDBNull(4) ? null : reader.GetString(4),
+                                    TaskImageUrl = reader.IsDBNull(4) ? null : reader.GetString(4).Split(',').ToList(),
                                     CreatedBy = reader.GetString(5),
                                     TaskType = reader.GetString(6),
                                     Area = new AreaDto
@@ -239,7 +239,7 @@ namespace api_cleany_app.src.Services
                                     TaskId = reader.GetInt32(1),
                                     Title = reader.GetString(2),
                                     Description = reader.IsDBNull(3) ? null : reader.GetString(3),
-                                    ImageUrl = reader.IsDBNull(4) ? null : reader.GetString(4),
+                                    TaskImageUrl = reader.IsDBNull(4) ? null : reader.GetString(4).Split(',').ToList(),
                                     CreatedBy = reader.GetString(5),
                                     TaskType = reader.GetString(6),
                                     Area = new AreaDto
@@ -273,9 +273,9 @@ namespace api_cleany_app.src.Services
         public bool AddAssignmentTask(int taskId, int taskTypeId)
         {
             string query = @"INSERT INTO 
-            assignments (task_id, image_url, date, worked_by, status)
+            assignments (task_id, date, worked_by, status)
             VALUES 
-                (@TaskId, NULL, @Date, NULL, 'pending');";
+                (@TaskId,@Date, NULL, 'pending');";
 
             try
             {
