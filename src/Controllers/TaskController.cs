@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 namespace api_cleany_app.src.Controllers
 {
     [Route("/api/task")]
-    //[Authorize]
+    [Authorize]
     [ApiController]
     public class TaskController : ControllerBase
     {
