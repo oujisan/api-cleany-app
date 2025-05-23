@@ -460,6 +460,28 @@ namespace api_cleany_app.src.Services
             return routineTasks;
         }
 
+        public int getTaskIdByAssignmentId(int assignmentId)
+        {
+            string query = "SELECT task_id FROM assignments WHERE assignment_id = @AssignmentId";
+            int taskId = 0;
+
+            try
+            {
+                using (SqlDbHelper sqlDbHelper = new SqlDbHelper(_connectionString))
+                using (NpgsqlCommand command = sqlDbHelper.NpgsqlCommand(query))
+                {
+                    command.Parameters.AddWithValue("@AssignmentId", assignmentId);
+                    var result = command.ExecuteScalar();
+                    taskId = Convert.ToInt32(result);
+                }
+            }
+            catch (Exception ex)
+            {
+                _errorMessage = ex.Message;
+            }
+            return taskId;
+        }
+
         public bool AddAssignmentTask(int taskId, int taskTypeId)
         {
             string query = @"INSERT INTO 
@@ -502,10 +524,15 @@ namespace api_cleany_app.src.Services
                 query = @"UPDATE assignments
                 SET
                     status = CAST(@status AS task_status),
-                    worked_by = @WorkedBy
+                    worked_by = @WorkedBy,
                     assignment_at = NOW()
-                WHERE
-                    assignment_id = @AssignmentId";
+                WHERE assignment_id = (
+                    SELECT assignment_id
+                    FROM assignments
+                    WHERE task_id = @TaskId
+                    ORDER BY assignment_at DESC
+                    LIMIT 1
+                );";
             }
             else if (status == "completed")
             {
@@ -513,26 +540,38 @@ namespace api_cleany_app.src.Services
                 SET
                     status = CAST(@status AS task_status),
                     complete_at = NOW()
-                WHERE
-                    assignment_id = @AssignmentId";
+                WHERE assignment_id = (
+                    SELECT assignment_id
+                    FROM assignments
+                    WHERE task_id = @TaskId
+                    ORDER BY assignment_at DESC
+                    LIMIT 1
+                );";
             }
             else
             {
                 query = @"UPDATE assignments
                 SET
                     status = CAST(@status AS task_status),
-                WHERE
-                    assignment_id = @AssignmentId";
+                WHERE assignment_id = (
+                    SELECT assignment_id
+                    FROM assignments
+                    WHERE task_id = @TaskId
+                    ORDER BY assignment_at DESC
+                    LIMIT 1
+                );";
             }
 
             using (SqlDbHelper sqlDbHelper = new SqlDbHelper(_connectionString))
             {
                 try
                 {
+                    int taskId = this.getTaskIdByAssignmentId(assignmentId);
                     using (NpgsqlCommand command = sqlDbHelper.NpgsqlCommand(query))
                     {
                         command.Parameters.AddWithValue("Status", status);
                         command.Parameters.AddWithValue("AssignmentId", assignmentId);
+                        command.Parameters.AddWithValue("TaskId", taskId);
 
                         if (status == "in_progress")
                         {

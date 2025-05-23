@@ -8,10 +8,12 @@ namespace api_cleany_app.src.Services
     {
         private string _connectionString;
         private string _errorMessage = string.Empty;
+        private TaskAssignmentService _taskAssignmentService;
 
-        public VerificationService()
+        public VerificationService(TaskAssignmentService taskAssignmentService)
         {
             _connectionString = DbConfig.ConnectionString;
+            _taskAssignmentService = taskAssignmentService;
         }
 
         public List<Verification> getAllVerifications()
@@ -255,38 +257,44 @@ namespace api_cleany_app.src.Services
 
         public bool updateVerification(VerificationDto verification, int assignmentId, int userId)
         {
-            string query;
-
-            if (verification.Status.ToLower() == "approved")
-            {
-                query = @"UPDATE verifications 
+            string query = @"UPDATE verifications 
                   SET status = @Status, 
                       verification_at = NOW(), 
                       verification_by = @UserId, 
                       feedback = @Feedback 
                   WHERE assignment_id = @AssignmentId";
-            }
-            else
-            {
-                query = @"UPDATE verifications 
-                  SET status = @Status, 
-                      verification_by = @UserId, 
-                      feedback = @Feedback 
-                  WHERE assignment_id = @AssignmentId";
-            }
 
             try
             {
                 using (SqlDbHelper sqlDbHelper = new SqlDbHelper(_connectionString))
-                using (NpgsqlCommand command = sqlDbHelper.NpgsqlCommand(query))
                 {
-                    command.Parameters.AddWithValue("@AssignmentId", assignmentId);
-                    command.Parameters.AddWithValue("@UserId", userId);
-                    command.Parameters.AddWithValue("@Status", verification.Status);
-                    command.Parameters.AddWithValue("@Feedback", string.IsNullOrEmpty(verification.Feedback) ? DBNull.Value : verification.Feedback);
+                    using (NpgsqlCommand command = sqlDbHelper.NpgsqlCommand(query))
+                    {
+                        command.Parameters.AddWithValue("@AssignmentId", assignmentId);
+                        command.Parameters.AddWithValue("@UserId", userId);
+                        command.Parameters.AddWithValue("@Status", verification.Status);
+                        command.Parameters.AddWithValue("@Feedback", string.IsNullOrEmpty(verification.Feedback) ? DBNull.Value : verification.Feedback);
+                        command.ExecuteNonQuery();
+                    }
 
-                    var result = command.ExecuteNonQuery();
-                    return result > 0;
+                    if (verification.Status == "rejected")
+                    {
+                        string queryAddAssignment = @"INSERT INTO assignments (task_id, worked_by, status) VALUES (@TaskId, NULL, 'pending')";
+                        int taskId = _taskAssignmentService.getTaskIdByAssignmentId(assignmentId);
+                        if (taskId > 0)
+                        {
+                            using (NpgsqlCommand command = sqlDbHelper.NpgsqlCommand(queryAddAssignment))
+                            {
+                                command.Parameters.AddWithValue("@TaskId", taskId);
+                                command.ExecuteNonQuery();
+                            }
+                            return true;
+                        }
+                        else
+                        {
+                            return false;
+                        }
+                    }
                 }
             }
             catch (Exception ex)
