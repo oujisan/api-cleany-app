@@ -10,13 +10,11 @@ namespace api_cleany_app.src.Services
         private string _connectionString;
         private string _errorMessage = string.Empty;
         private UserService _userService;
-        private VerificationService _verificationService;
 
         public TaskAssignmentService(UserService userService, VerificationService verificationService)
         {
             _connectionString = DbConfig.ConnectionString;
             _userService = userService;
-            _verificationService = verificationService;
         }
 
         public List<TaskAssignment> getTaskAssignmentRoutine()
@@ -583,13 +581,14 @@ namespace api_cleany_app.src.Services
 
                     if (status == "completed")
                     {
-                        var addVerification = _verificationService.addVerification(assignmentId);
-                        if (!addVerification)
+                        string queryInsert = "INSERT INTO verifications (assignment_id) VALUES (@AssignmentId)";
+                        using (NpgsqlCommand command = sqlDbHelper.NpgsqlCommand(queryInsert))
                         {
-                            return false;
-                        }
+                            command.Parameters.AddWithValue("@AssignmentId", assignmentId);
+                            command.ExecuteNonQuery();
+                        };
                     }
-
+                         
                     return true;
                 }
                 catch (Exception ex)
@@ -616,7 +615,7 @@ namespace api_cleany_app.src.Services
                     foreach (string imageUrl in imageUrls)
                     {
                         int imageId = 0;
-                        string queryInsertImage = @"INSERT INTO images VALUES (@ImageUrl) RETURNING image_id";
+                        string queryInsertImage = @"INSERT INTO images (image_url) VALUES (@ImageUrl) RETURNING image_id";
                         using (NpgsqlCommand command = sqlDbHelper.NpgsqlCommand(queryInsertImage))
                         {
                             command.Parameters.AddWithValue("@ImageUrl", imageUrl);
@@ -624,7 +623,7 @@ namespace api_cleany_app.src.Services
                             imageId = Convert.ToInt32(result);
                         }
 
-                        string queryInsertImageAsn = @"INSERT INTO assignment_images (assignment_id, image_id) VALUES (@AssignmentId, @imageId)";
+                        string queryInsertImageAsn = @"INSERT INTO assignment_images (assignment_id, image_id) VALUES (@AssignmentId, @ImageId)";
                         using (NpgsqlCommand command = sqlDbHelper.NpgsqlCommand(queryInsertImageAsn))
                         {
                             command.Parameters.AddWithValue("@AssignmentId", assignmentId);

@@ -8,12 +8,10 @@ namespace api_cleany_app.src.Services
     {
         private string _connectionString;
         private string _errorMessage = string.Empty;
-        private TaskAssignmentService _taskAssignmentService;
 
-        public VerificationService(TaskAssignmentService taskAssignmentService)
+        public VerificationService()
         {
             _connectionString = DbConfig.ConnectionString;
-            _taskAssignmentService = taskAssignmentService;
         }
 
         public List<Verification> getAllVerifications()
@@ -48,11 +46,11 @@ namespace api_cleany_app.src.Services
                             {
                                 Verification_id = reader.GetInt32(0),
                                 Assignment_id = reader.GetInt32(1),
-                                Verification_by = new UserCard
+                                Verification_by = reader.IsDBNull(2) ? null : new UserCard
                                 {
-                                    UserId = reader.GetInt32(2),
-                                    Username = reader.GetString(3),
-                                    Role = reader.GetString(4),
+                                    UserId = reader.IsDBNull(2) ? 0 : reader.GetInt32(2),
+                                    Username = reader.IsDBNull(3) ? null : reader.GetString(3),
+                                    Role = reader.IsDBNull(4) ? null : reader.GetString(4),
                                 },
                                 Status = reader.GetString(5),
                                 Feedback = reader.IsDBNull(6) ? null : reader.GetString(6),
@@ -103,11 +101,11 @@ namespace api_cleany_app.src.Services
                             {
                                 Verification_id = reader.GetInt32(0),
                                 Assignment_id = reader.GetInt32(1),
-                                Verification_by = new UserCard
+                                Verification_by = reader.IsDBNull(2) ? null : new UserCard
                                 {
-                                    UserId = reader.GetInt32(2),
-                                    Username = reader.GetString(3),
-                                    Role = reader.GetString(4),
+                                    UserId = reader.IsDBNull(2) ? 0 : reader.GetInt32(2),
+                                    Username = reader.IsDBNull(3) ? null : reader.GetString(3),
+                                    Role = reader.IsDBNull(4) ? null : reader.GetString(4),
                                 },
                                 Status = reader.GetString(5),
                                 Feedback = reader.IsDBNull(6) ? null : reader.GetString(6),
@@ -255,14 +253,22 @@ namespace api_cleany_app.src.Services
             return false;
         }
 
-        public bool updateVerification(VerificationDto verification, int assignmentId, int userId)
+        public bool updateVerification(VerificationStatusRequest request, int assignmentId, int userId)
         {
-            string query = @"UPDATE verifications 
-                  SET status = @Status, 
-                      verification_at = NOW(), 
-                      verification_by = @UserId, 
-                      feedback = @Feedback 
-                  WHERE assignment_id = @AssignmentId";
+            string query = @"UPDATE verifications v
+            SET 
+                status = CAST(@status AS verification_status), 
+                verification_at = NOW(), 
+                verification_by = @UserId, 
+                feedback = @Feedback
+            FROM (
+                SELECT verification_id 
+                FROM verifications 
+                WHERE assignment_id = @AssignmentId 
+                ORDER BY verification_id DESC 
+                LIMIT 1
+            ) sub
+            WHERE v.verification_id = sub.verification_id;";
 
             try
             {
@@ -272,15 +278,24 @@ namespace api_cleany_app.src.Services
                     {
                         command.Parameters.AddWithValue("@AssignmentId", assignmentId);
                         command.Parameters.AddWithValue("@UserId", userId);
-                        command.Parameters.AddWithValue("@Status", verification.Status);
-                        command.Parameters.AddWithValue("@Feedback", string.IsNullOrEmpty(verification.Feedback) ? DBNull.Value : verification.Feedback);
+                        command.Parameters.AddWithValue("@Status", request.Status);
+                        command.Parameters.AddWithValue("@Feedback", string.IsNullOrEmpty(request.Feedback) ? DBNull.Value : request.Feedback);
                         command.ExecuteNonQuery();
                     }
 
-                    if (verification.Status == "rejected")
+                    if (request.Status == "rejected")
                     {
                         string queryAddAssignment = @"INSERT INTO assignments (task_id, worked_by, status) VALUES (@TaskId, NULL, 'pending')";
-                        int taskId = _taskAssignmentService.getTaskIdByAssignmentId(assignmentId);
+                        string queryGetTaskId = "SELECT task_id FROM assignments WHERE assignment_id = @AssignmentId";
+                        int taskId = 0;
+
+                        using (NpgsqlCommand command = sqlDbHelper.NpgsqlCommand(queryGetTaskId))
+                        {
+                            command.Parameters.AddWithValue("@AssignmentId", assignmentId);
+                            var result = command.ExecuteScalar();
+                            taskId = Convert.ToInt32(result);
+                        }
+
                         if (taskId > 0)
                         {
                             using (NpgsqlCommand command = sqlDbHelper.NpgsqlCommand(queryAddAssignment))

@@ -414,7 +414,7 @@ namespace api_cleany_app.src.Services
                     }
 
 
-                    if (task.ImageUrl != null && task.ImageUrl.Any())
+                    if (task.ImageUrl != null || task.ImageUrl.Any())
                     {
                         foreach(string imageUrl in task.ImageUrl)
                         {
@@ -428,7 +428,7 @@ namespace api_cleany_app.src.Services
                                 imageId = Convert.ToInt32(result);
                             }
 
-                            string queryInsertTaskImage = @"INSERT INTO task_images (task_id, image_id) VALUES (@TaskId, ImageId);";
+                            string queryInsertTaskImage = @"INSERT INTO task_images (task_id, image_id) VALUES (@TaskId, @ImageId);";
                             using (NpgsqlCommand command = sqlDbHelper.NpgsqlCommand(queryInsertTaskImage))
                             {
                                 command.Parameters.AddWithValue("@taskId", taskId);

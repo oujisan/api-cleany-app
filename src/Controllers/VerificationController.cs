@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Http.HttpResults;
 namespace api_cleany_app.src.Controllers
 {
     [Route("api/verification")]
-    //[Authorize]
+    [Authorize]
     [ApiController]
     public class VerificationController : ControllerBase
     {
@@ -123,12 +123,12 @@ namespace api_cleany_app.src.Controllers
         }
 
         [HttpPut("assigment/update/{assignmentId}")]
-        public ActionResult UpdateVerification(int assignmentId, [FromBody] VerificationDto verificationData)
+       public ActionResult UpdateVerification(int assignmentId, [FromBody] VerificationStatusRequest request)
         {
             var username = User.Identity?.Name;
             int userId = _userService.getUserByUsername(username);
-            var verification = _service.updateVerification(verificationData, assignmentId, userId);
-            if (verification != null)
+            var verification = _service.updateVerification(request, assignmentId, userId);
+            if (verification)
             {
                 return Ok(new ApiResponse<object>
                 {

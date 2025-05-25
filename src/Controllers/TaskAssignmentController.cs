@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace api_cleany_app.src.Controllers
 {
     [Route("api/task/assignment")]
-    //[Authorize]
+    [Authorize]
     [ApiController]
     public class TaskAssignmentController : ControllerBase
     {
