@@ -115,7 +115,7 @@ namespace api_cleany_app.src.Services
                                     DaysOfWeek = reader.IsDBNull(14) ? null : reader.GetString(14).Split(',').ToList()
                                 },
                             },
-                            Date = reader.GetDateTime(15).ToString("dd-MM-yyyy"),
+                            Date = reader.IsDBNull(15) ? null : reader.GetDateTime(15).ToString("dd-MM-yyyy"),
                             ProofImageUrl = reader.IsDBNull(16) ? null : reader.GetString(16).Split(',').ToList(),
                             WorkedBy = reader.IsDBNull(17) ? null : reader.GetString(17),
                             Status = reader.GetString(18),
@@ -578,6 +578,26 @@ namespace api_cleany_app.src.Services
 
                         command.ExecuteNonQuery();
                     }
+
+                    bool isRoutine = false;
+                    string queryCheckTaskType = @"
+                    SELECT true 
+                    FROM assignments a
+                        LEFT JOIN tasks t ON t.task_id = a.task_id
+                    WHERE t.task_type_id = 2 AND assignment_id = @AssignmentId
+                    LIMIT 1";
+
+                    using (NpgsqlCommand command = sqlDbHelper.NpgsqlCommand(queryCheckTaskType))
+                    {
+                        command.Parameters.AddWithValue("@AssignmentId", assignmentId);
+                        var result = command.ExecuteScalar();
+
+                        if (result != null && result != DBNull.Value)
+                        {
+                            isRoutine = (bool)result;
+                        }
+                    }
+
 
                     if (status == "completed")
                     {
