@@ -85,14 +85,20 @@ builder.Services.AddControllers()
 
 var app = builder.Build();
 
-app.UseSwagger();
-app.UseSwaggerUI();
-app.UseDeveloperExceptionPage();
-
 if (app.Environment.IsDevelopment())
 {
-    app.UseHttpsRedirection();
+    app.UseDeveloperExceptionPage();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
+else
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
+
+app.UseHttpsRedirection();
 
 app.UseAuthentication();
 
