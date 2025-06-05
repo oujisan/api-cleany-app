@@ -14,12 +14,14 @@ namespace api_cleany_app.src.Controllers
         private readonly AuthService _authService;
         private readonly IMemoryCache _cache;
         private JwtHelper _jwtHelper;
+        private readonly UserService _userService;
 
-        public AuthController(IConfiguration configuration, AuthService authService, IMemoryCache memoryCache)
+        public AuthController(IConfiguration configuration, AuthService authService, IMemoryCache memoryCache, UserService userService)
         {
             _configuration = configuration;
             _authService = authService;
             _cache = memoryCache;
+            _userService = userService;
         }
 
         [HttpPost("login")]
@@ -62,38 +64,52 @@ namespace api_cleany_app.src.Controllers
         }
 
         [HttpPost("register")]
-        public ActionResult register([FromBody] User user)
+        public ActionResult register([FromBody] Registration registration)
         {
-            var requesterRole = User.FindFirst("Role")?.Value;
-            if (ValidationHelper.validateUserData(user))
+            if (_userService.getUserByUsername(registration.Username) > 0)
             {
-                if ((user.Role == "Cleaner" || user.Role == "Admin") && requesterRole != "Admin")
+                return BadRequest(new ApiResponse<object>
                 {
-                    return BadRequest("You hasn't permission to create account with admin or cleaner role");
+                    Success = false,
+                    Message = "Username already used",
+                    Data = null,
+                    Error = _authService.GetError()
+                });
+            }
+
+            if (_userService.IsEmailUsed(registration.Email))
+            {
+                return BadRequest(new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = "Email already used",
+                    Data = null,
+                    Error = _authService.GetError()
+                });
+            }
+
+            if (ValidationHelper.validateRegistrationData(registration))
+            {
+                var isRegistered = _authService.Registration(registration);
+                if (isRegistered)
+                {
+                    return Ok(new ApiResponse<object>
+                    {
+                        Success = true,
+                        Message = "User registered successfully",
+                        Data = null,
+                        Error = null,
+                    });
                 }
                 else
                 {
-                    var isRegistered = _authService.Registration(user);
-                    if (isRegistered)
+                    return BadRequest(new ApiResponse<object>
                     {
-                        return Ok(new ApiResponse<object>
-                        {
-                            Success = true,
-                            Message = "User registered successfully",
-                            Data = null,
-                            Error = null,
-                        });
-                    }
-                    else
-                    {
-                        return BadRequest(new ApiResponse<object>
-                        {
-                            Success = false,
-                            Message = "Registration failed",
-                            Data = null,
-                            Error = _authService.GetError()
-                        });
-                    }
+                        Success = false,
+                        Message = "Registration failed",
+                        Data = null,
+                        Error = _authService.GetError()
+                    });
                 }
             }
             else
@@ -112,7 +128,7 @@ namespace api_cleany_app.src.Controllers
                 return BadRequest(new ApiResponse<object>
                 {
                     Success = false,
-                    Message = "Email not found.",
+                    Message = "Email not found",
                     Data = null,
                     Error = _authService.GetError()
                 });
@@ -120,6 +136,7 @@ namespace api_cleany_app.src.Controllers
 
             string username = _authService.GetUsernameByEmail(user.Email);
             string verificationCode = _authService.GenerateVerificationCode();
+            //_cache.Remove($"otp_code_{user.Email}");
             bool isEmailSent = await _authService.SendVerificationEmailAsync(username, user.Email, verificationCode);
 
             if (isEmailSent)
@@ -127,7 +144,7 @@ namespace api_cleany_app.src.Controllers
                 return Ok(new ApiResponse<object>
                 {
                     Success = true,
-                    Message = "Verification code sent to your email.",
+                    Message = "Verification code sent to your email",
                     Data = null,
                     Error = null
                 });
@@ -143,7 +160,7 @@ namespace api_cleany_app.src.Controllers
         }
 
 
-        [HttpPost("verify")]
+        [HttpPost("verify-password")]
         public ActionResult VerifyOtp([FromBody] OtpVerifyRequest request)
         {
             bool isValid = _authService.ValidateOtpToken(request.Email, request.Code);
@@ -154,7 +171,7 @@ namespace api_cleany_app.src.Controllers
                 return Ok(new ApiResponse<object>
                 {
                     Success = true,
-                    Message = "Verification code is valid.",
+                    Message = "Verification code is valid",
                     Data= null,
                     Error = null
                 });
@@ -163,7 +180,7 @@ namespace api_cleany_app.src.Controllers
             return BadRequest(new ApiResponse<object>
             {
                 Success = false,
-                Message = "Invalid or expired verification code.",
+                Message = "Invalid or expired verification code",
                 Data = null,
                 Error = _authService.GetError()
             });
@@ -177,7 +194,7 @@ namespace api_cleany_app.src.Controllers
                 return BadRequest(new ApiResponse<object>
                 {
                     Success = false,
-                    Message = "OTP verification required before resetting password.",
+                    Message = "OTP verification required before resetting password",
                     Data = null,
                     Error = _authService.GetError()
                 });
@@ -188,7 +205,7 @@ namespace api_cleany_app.src.Controllers
                 return BadRequest(new ApiResponse<object> 
                 { 
                     Success = false, 
-                    Message = "Invalid password format. Ensure the password meets the required criteria.", 
+                    Message = "Invalid password format. Ensure the password meets the required criteria", 
                     Data = null, 
                     Error = _authService.GetError() 
                 });
@@ -202,7 +219,7 @@ namespace api_cleany_app.src.Controllers
                 return Ok(new ApiResponse<object>
                 {
                     Success = true,
-                    Message = "Password reset successfully.",
+                    Message = "Password reset successfully",
                     Data = null,
                     Error = null
                 });

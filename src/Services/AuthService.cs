@@ -22,13 +22,6 @@ namespace api_cleany_app.src.Services
             _connectionString = DbConfig.ConnectionString;
         }
 
-        private static readonly Dictionary<string, int> RoleNameToId = new()
-        {
-            { "admin", 1 },
-            { "cleaner", 2 },
-            { "user", 3 }
-        };
-
         public bool Authentication(string email, string password, out User user)
         {
             user = null;
@@ -70,11 +63,11 @@ namespace api_cleany_app.src.Services
                 }
         }
 
-        public bool Registration(User user)
+        public bool Registration(Registration user)
         {
-            string query = "INSERT INTO users (first_name, last_name, username, email, password, image_url, role_id, shift_id) VALUES (@firstName, @lastName, @username, @email ,crypt(@password, gen_salt('bf')), @imageUrl, @roleId, NULL);";
+            string query = "INSERT INTO users (first_name, last_name, username, email, password, image_url, role_id, shift_id) VALUES (@firstName, @lastName, @username, @email ,crypt(@password, gen_salt('bf')), NULL, @roleId, NULL);";
 
-            RoleNameToId.TryGetValue(user.Role.ToLower(), out int roleId);
+            
 
             using (SqlDbHelper dbHelper = new SqlDbHelper(_connectionString))
                 try
@@ -86,8 +79,7 @@ namespace api_cleany_app.src.Services
                         command.Parameters.AddWithValue("@username", user.Username);
                         command.Parameters.AddWithValue("@email", user.Email);
                         command.Parameters.AddWithValue("@password", user.Password);
-                        command.Parameters.AddWithValue("@imageUrl", (object?)user.ImageUrl ?? DBNull.Value);
-                        command.Parameters.AddWithValue("@roleId", roleId);
+                        command.Parameters.AddWithValue("@roleId", 3);
 
                         int rowsAffected = command.ExecuteNonQuery();
                         if (rowsAffected > 0)

@@ -599,7 +599,7 @@ namespace api_cleany_app.src.Services
                     }
 
 
-                    if (status == "completed")
+                    if (status == "completed" && isRoutine)
                     {
                         string queryInsert = "INSERT INTO verifications (assignment_id) VALUES (@AssignmentId)";
                         using (NpgsqlCommand command = sqlDbHelper.NpgsqlCommand(queryInsert))
