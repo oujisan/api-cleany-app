@@ -55,4 +55,4 @@ jobs:
           app-name: 'api-cleany-app'
           slot-name: 'Production'
           package: .
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_E195016A3C924743870DC97A708C4521 }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_1D7F749847A84325BF0D1091FED830A9 }}
