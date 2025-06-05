@@ -126,6 +126,7 @@ namespace api_cleany_app.src.Controllers
             }
         }
 
+        [Authorize(Roles = "admin")]
         [HttpDelete("delete/{userId}")]
         public ActionResult DeleteUser(int userId)
         {
