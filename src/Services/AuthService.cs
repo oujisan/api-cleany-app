@@ -25,11 +25,12 @@ namespace api_cleany_app.src.Services
         {
             user = null;
 
+
             string getUserQuery = @"
                 SELECT u.user_id, u.username, u.email, r.name AS role_name, u.password 
                 FROM users u 
                 JOIN roles r ON u.role_id = r.role_id 
-                WHERE u.email = @Email AND u.password = @Password";
+                WHERE u.email = @Email";
 
             try
             {
@@ -37,20 +38,30 @@ namespace api_cleany_app.src.Services
                 using (NpgsqlCommand command = dbHelper.NpgsqlCommand(getUserQuery))
                 {
                     command.Parameters.AddWithValue("@Email", email);
-                    command.Parameters.AddWithValue("@Password", BCrypt.Net.BCrypt.HashPassword(password));
 
                     using (NpgsqlDataReader reader = command.ExecuteReader())
                     {
                         if (reader.Read())
                         {
-                            user = new User
+                            string hashedPasswordFromDb = reader.GetString(4);
+
+                            // Verifikasi password menggunakan BCrypt
+                            if (BCrypt.Net.BCrypt.Verify(password, hashedPasswordFromDb))
                             {
-                                UserId = reader.GetInt32(0),
-                                Username = reader.GetString(1),
-                                Email = reader.GetString(2),
-                                Role = reader.GetString(3)
-                            };
-                            return true;
+                                user = new User
+                                {
+                                    UserId = reader.GetInt32(0),
+                                    Username = reader.GetString(1),
+                                    Email = reader.GetString(2),
+                                    Role = reader.GetString(3)
+                                };
+                                return true;
+                            }
+                            else
+                            {
+                                _errorMessage = "Invalid email or password.";
+                                return false;
+                            }
                         }
                         else
                         {
