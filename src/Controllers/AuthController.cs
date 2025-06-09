@@ -136,7 +136,6 @@ namespace api_cleany_app.src.Controllers
 
             string username = _authService.GetUsernameByEmail(user.Email);
             string verificationCode = _authService.GenerateVerificationCode();
-            //_cache.Remove($"otp_code_{user.Email}");
             bool isEmailSent = await _authService.SendVerificationEmailAsync(username, user.Email, verificationCode);
 
             if (isEmailSent)

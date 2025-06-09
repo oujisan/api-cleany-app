@@ -3,9 +3,7 @@ using api_cleany_app.src.Helpers;
 using Npgsql;
 using System.Net.Mail;
 using System.Net;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
-using BCrypt;
 
 namespace api_cleany_app.src.Services
 {
@@ -31,7 +29,7 @@ namespace api_cleany_app.src.Services
                 SELECT u.user_id, u.username, u.email, r.name AS role_name, u.password 
                 FROM users u 
                 JOIN roles r ON u.role_id = r.role_id 
-                WHERE u.email = @Email";
+                WHERE u.email = @Email AND u.password = @Password";
 
             try
             {
@@ -39,30 +37,20 @@ namespace api_cleany_app.src.Services
                 using (NpgsqlCommand command = dbHelper.NpgsqlCommand(getUserQuery))
                 {
                     command.Parameters.AddWithValue("@Email", email);
+                    command.Parameters.AddWithValue("@Password", BCrypt.Net.BCrypt.HashPassword(password));
 
                     using (NpgsqlDataReader reader = command.ExecuteReader())
                     {
                         if (reader.Read())
                         {
-                            string hashedPasswordFromDb = reader.GetString(4);
-
-                            // Verifikasi password
-                            if (BCrypt.Net.BCrypt.Verify(password, hashedPasswordFromDb))
+                            user = new User
                             {
-                                user = new User
-                                {
-                                    UserId = reader.GetInt32(0),
-                                    Username = reader.GetString(1),
-                                    Email = reader.GetString(2),
-                                    Role = reader.GetString(3)
-                                };
-                                return true;
-                            }
-                            else
-                            {
-                                _errorMessage = "Invalid email or password.";
-                                return false;
-                            }
+                                UserId = reader.GetInt32(0),
+                                Username = reader.GetString(1),
+                                Email = reader.GetString(2),
+                                Role = reader.GetString(3)
+                            };
+                            return true;
                         }
                         else
                         {
