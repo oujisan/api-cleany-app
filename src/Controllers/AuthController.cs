@@ -45,7 +45,8 @@ namespace api_cleany_app.src.Controllers
                         {
                             user.UserId,
                             user.Username,
-                            user.Role
+                            user.Role,
+                            user.ImageUrl
                         }
                     },
                     Error = null,

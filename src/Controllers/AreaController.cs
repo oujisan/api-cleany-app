@@ -6,7 +6,7 @@ using api_cleany_app.src.Models;
 namespace api_cleany_app.src.Controllers
 {
     [Route("api/area")]
-    //[Authorize]
+    [Authorize]
     [ApiController]
     public class AreaController : ControllerBase
     {
