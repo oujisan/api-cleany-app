@@ -123,6 +123,32 @@ namespace api_cleany_app.src.Controllers
             }
         }
 
+        [HttpGet("{id}")]
+        public ActionResult<List<TaskAssignment>> GetTaskAssignmentBId(int id)
+        {
+            var task = _service.getTaskAssignmentById(id);
+            if (task != null)
+            {
+                return base.Ok(new ApiResponse<TaskAssignment>
+                {
+                    Success = true,
+                    Message = $"Fetch assignment task by ID {id} successfull",
+                    Data = task,
+                    Error = null
+                });
+            }
+            else
+            {
+                return base.BadRequest(new ApiResponse<TaskAssignment>
+                {
+                    Success = false,
+                    Message = $"Failed fetch assignment task by ID {id} assignment",
+                    Data = null,
+                    Error = _service.getError()
+                });
+            }
+        }
+
         [HttpPost("routine/add/{taskId}")]
         public ActionResult addRoutineTaskAssignment(int taskId)
         {
