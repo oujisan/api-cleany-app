@@ -1,12 +1,14 @@
 ﻿using Npgsql;
+using System;
 
 namespace api_cleany_app.src.Helpers
 {
     public class SqlDbHelper : IDisposable
     {
         private readonly NpgsqlConnection _connection;
-        private string _connectionString;
+        private readonly string _connectionString;
         private string _errorMessage = string.Empty;
+        private bool _disposed = false;
 
         public SqlDbHelper(string connectionString)
         {
@@ -14,18 +16,34 @@ namespace api_cleany_app.src.Helpers
             _connection = new NpgsqlConnection(_connectionString);
         }
 
-        public NpgsqlCommand NpgsqlCommand(string pQuery)
+        public NpgsqlConnection Connection => _connection;
+
+        public NpgsqlCommand NpgsqlCommand(string query)
         {
             try
             {
                 this.OpenConnection();
-                return new NpgsqlCommand(pQuery, _connection);
+                return new NpgsqlCommand(query, _connection);
             }
             catch (Exception ex)
             {
                 _errorMessage = ex.Message;
+                return null;
             }
-            return null;
+        }
+
+        public NpgsqlCommand NpgsqlCommand(string query, NpgsqlTransaction transaction)
+        {
+            try
+            {
+                this.OpenConnection();
+                return new NpgsqlCommand(query, _connection, transaction);
+            }
+            catch (Exception ex)
+            {
+                _errorMessage = ex.Message;
+                return null;
+            }
         }
 
         public void OpenConnection()
@@ -44,15 +62,30 @@ namespace api_cleany_app.src.Helpers
             }
         }
 
-        public string getError() => _errorMessage;
+        public string GetError() => _errorMessage;
 
         public void Dispose()
         {
-            if (_connection != null)
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposed)
             {
-                this.CloseConnection();
-                _connection.Dispose();
+                if (disposing)
+                {
+                    this.CloseConnection();
+                    _connection.Dispose();
+                }
+                _disposed = true;
             }
+        }
+
+        ~SqlDbHelper()
+        {
+            Dispose(false);
         }
     }
 }

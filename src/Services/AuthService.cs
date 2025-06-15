@@ -3,7 +3,6 @@ using api_cleany_app.src.Helpers;
 using Npgsql;
 using System.Net.Mail;
 using System.Net;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace api_cleany_app.src.Services
@@ -22,30 +21,32 @@ namespace api_cleany_app.src.Services
             _connectionString = DbConfig.ConnectionString;
         }
 
-        private static readonly Dictionary<string, int> RoleNameToId = new()
-        {
-            { "admin", 1 },
-            { "cleaner", 2 },
-            { "user", 3 }
-        };
-
         public bool Authentication(string email, string password, out User user)
         {
             user = null;
 
-            string query = "SELECT user_id, username, email, roles.name FROM users JOIN roles ON users.role_id = roles.role_id WHERE email = @email AND password = crypt(@password, password)";
 
-            using (SqlDbHelper dbHelper = new SqlDbHelper(_connectionString))
+            string getUserQuery = @"
+                SELECT u.user_id, u.username, u.email, r.name AS role_name, u.password 
+                FROM users u 
+                JOIN roles r ON u.role_id = r.role_id 
+                WHERE u.email = @Email";
 
-                try
+            try
+            {
+                using (SqlDbHelper dbHelper = new SqlDbHelper(_connectionString))
+                using (NpgsqlCommand command = dbHelper.NpgsqlCommand(getUserQuery))
                 {
-                    using (NpgsqlCommand command = dbHelper.NpgsqlCommand(query))
+                    command.Parameters.AddWithValue("@Email", email);
+
+                    using (NpgsqlDataReader reader = command.ExecuteReader())
                     {
-                        command.Parameters.AddWithValue("@email", email);
-                        command.Parameters.AddWithValue("@password", password);
-                        using (NpgsqlDataReader reader = command.ExecuteReader())
+                        if (reader.Read())
                         {
-                            if (reader.Read())
+                            string hashedPasswordFromDb = reader.GetString(4);
+
+                            // Verifikasi password menggunakan BCrypt
+                            if (BCrypt.Net.BCrypt.Verify(password, hashedPasswordFromDb))
                             {
                                 user = new User
                                 {
@@ -62,19 +63,27 @@ namespace api_cleany_app.src.Services
                                 return false;
                             }
                         }
+                        else
+                        {
+                            _errorMessage = "Invalid email or password.";
+                            return false;
+                        }
                     }
                 }
-                catch (Exception ex)
-                {
-                    return false;
-                }
+            }
+            catch (Exception ex)
+            {
+                _errorMessage = $"Authentication error: {ex.Message}";
+                return false;
+            }
         }
 
-        public bool Registration(User user)
-        {
-            string query = "INSERT INTO users (first_name, last_name, username, email, password, image_url, role_id, shift_id) VALUES (@firstName, @lastName, @username, @email ,crypt(@password, gen_salt('bf')), @imageUrl, @roleId, NULL);";
 
-            RoleNameToId.TryGetValue(user.Role.ToLower(), out int roleId);
+        public bool Registration(Registration user)
+        {
+            string query = "INSERT INTO users (first_name, last_name, username, email, password, image_url, role_id, shift_id) VALUES (@firstName, @lastName, @username, @email ,@password, NULL, @roleId, NULL);";
+
+            
 
             using (SqlDbHelper dbHelper = new SqlDbHelper(_connectionString))
                 try
@@ -85,9 +94,8 @@ namespace api_cleany_app.src.Services
                         command.Parameters.AddWithValue("@lastName", (object?)user.LastName ?? DBNull.Value);
                         command.Parameters.AddWithValue("@username", user.Username);
                         command.Parameters.AddWithValue("@email", user.Email);
-                        command.Parameters.AddWithValue("@password", user.Password);
-                        command.Parameters.AddWithValue("@imageUrl", (object?)user.ImageUrl ?? DBNull.Value);
-                        command.Parameters.AddWithValue("@roleId", roleId);
+                        command.Parameters.AddWithValue("@password", BCrypt.Net.BCrypt.HashPassword(user.Password));
+                        command.Parameters.AddWithValue("@roleId", 3);
 
                         int rowsAffected = command.ExecuteNonQuery();
                         if (rowsAffected > 0)
@@ -159,15 +167,46 @@ namespace api_cleany_app.src.Services
             }
         }
 
+        public bool verifyPassword(string email, string inputPassword)
+        {
+            string query = "SELECT password FROM users WHERE email = @Email";
+
+            using (SqlDbHelper dbHelper = new SqlDbHelper(_connectionString))
+            {
+                try
+                {
+                    using (NpgsqlCommand command = dbHelper.NpgsqlCommand(query))
+                    {
+                        command.Parameters.AddWithValue("@Email", email);
+                        string hashedPassword = command.ExecuteScalar()?.ToString();
+                        if (hashedPassword != null)
+                        {
+                            return BCrypt.Net.BCrypt.Verify(inputPassword, hashedPassword);
+                        }
+                        else
+                        {
+                            _errorMessage = "Email not found.";
+                            return false;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _errorMessage = ex.Message;
+                    return false;
+                }
+            }
+        }
+
         public bool ResetPassword(ResetPassword resetPassword)
         {
-            string query_reset_password = "UPDATE users SET password = crypt(@NewPassword, gen_salt('bf')) WHERE email = @Email";
+            string query_reset_password = "UPDATE users SET password = @NewPassword WHERE email = @Email";
             using (SqlDbHelper dbHelper = new SqlDbHelper(_connectionString))
                 try
                 {
                     using (NpgsqlCommand command = dbHelper.NpgsqlCommand(query_reset_password))
                     {
-                        command.Parameters.AddWithValue("@NewPassword", resetPassword.NewPassword);
+                        command.Parameters.AddWithValue("@NewPassword", BCrypt.Net.BCrypt.HashPassword(resetPassword.NewPassword));
                         command.Parameters.AddWithValue("@Email", resetPassword.Email);
                         int rowsAffected = command.ExecuteNonQuery();
                         if (rowsAffected > 0)

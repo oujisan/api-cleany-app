@@ -48,7 +48,7 @@ namespace api_cleany_app.src.Controllers
         [HttpGet("routine")]
         public ActionResult<List<Models.TaskAssignment>> GetAssignmentRoutine()
         {
-            var routineTask = _service.getTaskAssignmnetRoutine();
+            var routineTask = _service.getTaskAssignmentRoutine();
             if (routineTask != null)
             {
                 return base.Ok(new ApiResponse<List<Models.TaskAssignment>>
@@ -97,7 +97,111 @@ namespace api_cleany_app.src.Controllers
             }
         }
 
-        [HttpPut("status_update/{assignmentId}")]
+        [HttpGet("routine/user/{userId}")]
+        public ActionResult<List<TaskAssignment>> GetTaskAssignmentRoutineByUserId(int userId)
+        {
+            var reportTask = _service.getTaskAssignmentRoutineByUserId(userId);
+            if (reportTask != null)
+            {
+                return base.Ok(new ApiResponse<List<TaskAssignment>>
+                {
+                    Success = true,
+                    Message = $"Fetch routine task assignment by user ID {userId} successfull",
+                    Data = reportTask,
+                    Error = null
+                });
+            }
+            else
+            {
+                return base.BadRequest(new ApiResponse<Models.TaskAssignment>
+                {
+                    Success = false,
+                    Message = $"Failed fetch routine task by user ID {userId} assignment",
+                    Data = null,
+                    Error = _service.getError()
+                });
+            }
+        }
+
+        [HttpGet("{id}")]
+        public ActionResult<List<TaskAssignment>> GetTaskAssignmentBId(int id)
+        {
+            var task = _service.getTaskAssignmentById(id);
+            if (task != null)
+            {
+                return base.Ok(new ApiResponse<TaskAssignment>
+                {
+                    Success = true,
+                    Message = $"Fetch assignment task by ID {id} successfull",
+                    Data = task,
+                    Error = null
+                });
+            }
+            else
+            {
+                return base.BadRequest(new ApiResponse<TaskAssignment>
+                {
+                    Success = false,
+                    Message = $"Failed fetch assignment task by ID {id} assignment",
+                    Data = null,
+                    Error = _service.getError()
+                });
+            }
+        }
+
+        [HttpPost("routine/add/{taskId}")]
+        public ActionResult addRoutineTaskAssignment(int taskId)
+        {
+            var taskAssignment = _service.AddAssignmentTask(taskId, 1);
+            if (taskAssignment)
+            {
+                return Ok(new ApiResponse<object>
+                {
+                    Success = true,
+                    Message = "Add routine task assignment successfull",
+                    Data = null,
+                    Error = null
+                });
+            }
+            else
+            {
+                return BadRequest(new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = "Failed add task assignment",
+                    Data = null,
+                    Error = _service.getError()
+                });
+            }
+        }
+
+        [HttpPost("report/add/{taskId}")]
+        public ActionResult addReportTaskAssignment(int taskId)
+        {
+            var taskAssignment = _service.AddAssignmentTask(taskId, 2);
+            if (taskAssignment)
+            {
+                return Ok(new ApiResponse<object>
+                {
+                    Success = true,
+                    Message = "Add report task assignment successfull",
+                    Data = null,
+                    Error = null
+                });
+            }
+            else
+            {
+                return BadRequest(new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = "Failed add task assignment",
+                    Data = null,
+                    Error = _service.getError()
+                });
+            }
+        }
+
+        [HttpPut("update/status/{assignmentId}")]
         public ActionResult updateStatusTask([FromBody] string status, int assignmentId)
         {
             var username = User.Identity?.Name;
@@ -120,6 +224,32 @@ namespace api_cleany_app.src.Controllers
                 {
                     Success = false,
                     Message = "Failed update status task",
+                    Data = null,
+                    Error = _service.getError()
+                });
+            }
+        }
+
+        [HttpPut("update/proofimageurl/{assignmentId}")]
+        public ActionResult updateProofImageUrl(int assignmentId, [FromBody] List<string>ImageUrls)
+        {
+            var isUpdated = _service.updateProofImage(assignmentId, ImageUrls);
+            if (isUpdated)
+            {
+                return Ok(new ApiResponse<object>
+                {
+                    Success = true,
+                    Message = "Update proof image url successfull",
+                    Data = null,
+                    Error = null,
+                });
+            }
+            else
+            {
+                return BadRequest(new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = "Failed update proof image url",
                     Data = null,
                     Error = _service.getError()
                 });

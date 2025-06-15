@@ -57,6 +57,27 @@ namespace api_cleany_app.src.Services
             return users;
         }
 
+        public bool IsEmailUsed(string email)
+        {
+            string query = "SELECT 1 FROM users WHERE LOWER(email) = LOWER(@Email) LIMIT 1";
+
+            try
+            {
+                using (SqlDbHelper sqlDbHelper = new SqlDbHelper(_connectionString))
+                using (NpgsqlCommand command = sqlDbHelper.NpgsqlCommand(query))
+                {
+                    command.Parameters.AddWithValue("Email", email);
+                    var result = command.ExecuteScalar();
+                    return result != null;
+                }
+            }
+            catch (Exception e)
+            {
+                _errorMessage = e.Message;
+                return false; 
+            }
+        }
+
         public int getUserByUsername(string username)
         {
             string query = "SELECT user_id FROM users WHERE LOWER(username) = LOWER(@Username)";

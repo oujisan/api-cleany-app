@@ -5,17 +5,15 @@ namespace api_cleany_app.src.Helpers
 {
     public class ValidationHelper
     {
-        public static bool validateUserData(User user)
+        public static bool validateRegistrationData(Registration registration)
         {
-            return !string.IsNullOrEmpty(user.FirstName) &&
-                   !string.IsNullOrEmpty(user.Username) &&
-                   !string.IsNullOrEmpty(user.Email) &&
-                   !string.IsNullOrEmpty(user.Password) &&
-                   !string.IsNullOrEmpty(user.Role) &&
-                   isEmailValid(user.Email) &&
-                   isPasswordValid(user.Password) &&
-                   isUsernameValid(user.Username) &&
-                   (user.ImageUrl != null ? isImageUrlValid(user.ImageUrl) : true);
+            return !string.IsNullOrEmpty(registration.FirstName) &&
+                   !string.IsNullOrEmpty(registration.Username) &&
+                   !string.IsNullOrEmpty(registration.Email) &&
+                   !string.IsNullOrEmpty(registration.Password) &&
+                   isEmailValid(registration.Email) &&
+                   isPasswordValid(registration.Password) &&
+                   isUsernameValid(registration.Username);
         }
         public static bool isEmailValid(string email)
         {

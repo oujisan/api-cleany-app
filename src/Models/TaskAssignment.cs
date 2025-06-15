@@ -7,7 +7,7 @@
         public string Date { get; set; }
         public string Status { get; set; }
         public string WorkedBy { get; set; }
-        public string? ProofImageUrl { get; set; }
+        public List<string?> ProofImageUrl { get; set; }
         public string? CreatedAt { get; set; }
         public string? AssigmentAt { get; set; }
         public string? CompleteAt { get; set; }

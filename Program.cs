@@ -19,6 +19,7 @@ builder.Services.AddScoped<ShiftService>();
 builder.Services.AddScoped<TaskService>();
 builder.Services.AddScoped<TaskAssignmentService>();
 builder.Services.AddScoped<AreaService>();
+builder.Services.AddScoped<VerificationService>();
 
 
 builder.Services.AddControllers();
@@ -32,7 +33,7 @@ builder.Services.AddSwaggerGen(
         {
             Title = "API Cleany App",
             Version = "v1",
-            Description = "API Cleany App"
+            Description = "API Cleany App: Sistem Tugas Kebersihan Fakultas Berbasis Jadwal Rutin Dan Laporan Insidental Dengan Verifikasi Foto"
         });
 
         option.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
@@ -84,12 +85,16 @@ builder.Services.AddControllers()
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+else
 {
     app.UseSwagger();
     app.UseSwaggerUI();
-    app.UseDeveloperExceptionPage(); // Tampilkan stack trace
 }
 
 
