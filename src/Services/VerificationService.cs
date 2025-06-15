@@ -257,7 +257,7 @@ namespace api_cleany_app.src.Services
         {
             string query = @"UPDATE verifications v
             SET 
-                status = CAST(@status AS verification_status), 
+                status = CAST(@Status AS verification_status), 
                 verification_at = NOW(), 
                 verification_by = @UserId, 
                 feedback = @Feedback
@@ -310,6 +310,8 @@ namespace api_cleany_app.src.Services
                             return false;
                         }
                     }
+
+                    return true;
                 }
             }
             catch (Exception ex)
