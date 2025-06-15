@@ -448,65 +448,79 @@ namespace api_cleany_app.src.Services
 
         public bool updateReportTask(ReportTaskDto task, int taskId)
         {
-            string query = @"UPDATE tasks
-            SET
-                title = @Title,
-                area_id = @AreaId,
-                description = @Description,
-                updated_at = NOW()
-            WHERE
-                task_id = @TaskId AND task_type_id = 2";
+            string queryUpdateTask = @"
+        UPDATE tasks
+        SET
+            title = @Title,
+            area_id = @AreaId,
+            description = @Description,
+            updated_at = NOW()
+        WHERE
+            task_id = @TaskId AND task_type_id = 2";
+
+            string queryDeleteImages = @"DELETE FROM task_images WHERE task_id = @TaskId";
+            string queryInsertImage = @"INSERT INTO images (image_url) VALUES (@ImageUrl) RETURNING image_id;";
+            string queryInsertTaskImage = @"INSERT INTO task_images (task_id, image_id) VALUES (@TaskId, @ImageId)";
+
             try
             {
                 using (SqlDbHelper sqlDbHelper = new SqlDbHelper(_connectionString))
                 {
-                    using (NpgsqlCommand command = sqlDbHelper.NpgsqlCommand(query))
+                    // 1. UPDATE tasks
+                    using (var command = sqlDbHelper.NpgsqlCommand(queryUpdateTask))
                     {
                         command.Parameters.AddWithValue("@Title", task.Title);
                         command.Parameters.AddWithValue("@AreaId", task.AreaId);
                         command.Parameters.AddWithValue("@Description", task.Description ?? (object)DBNull.Value);
-                        command.Parameters.AddWithValue("@ImageUrl", task.ImageUrl ?? (object)DBNull.Value);
                         command.Parameters.AddWithValue("@TaskId", taskId);
                         command.ExecuteNonQuery();
                     }
-                    string queryDelImages = @"DELETE FROM task_images WHERE task_id = @TaskId";
 
-                    using (NpgsqlCommand command = sqlDbHelper.NpgsqlCommand(queryDelImages))
+                    // 2. DELETE old task_images
+                    using (var command = sqlDbHelper.NpgsqlCommand(queryDeleteImages))
                     {
                         command.Parameters.AddWithValue("@TaskId", taskId);
                         command.ExecuteNonQuery();
                     }
 
-                    foreach (string imageUrl in task.ImageUrl)
+                    // 3. INSERT new images and link to task
+                    bool insertSuccess = false;
+
+                    if (task.ImageUrl != null)
                     {
-                        int imageId = 0;
-                        string queryImage = @"INSERT INTO images (image_url) VALUES (@ImageUrl) RETURNING image_id;";
-
-                        using (NpgsqlCommand command = sqlDbHelper.NpgsqlCommand(queryImage))
+                        foreach (string imageUrl in task.ImageUrl)
                         {
-                            command.Parameters.AddWithValue("@ImageUrl", imageUrl);
-                            var result = command.ExecuteScalar();
-                            imageId = Convert.ToInt32(result);
-                        }
+                            int imageId;
 
-                        string queryTaskImages = @"INSERT INTO task_images (task_id, image_id) VALUES (@TaskId, @ImageId)";
+                            // INSERT into images
+                            using (var command = sqlDbHelper.NpgsqlCommand(queryInsertImage))
+                            {
+                                command.Parameters.AddWithValue("@ImageUrl", imageUrl);
+                                var result = command.ExecuteScalar();
+                                imageId = Convert.ToInt32(result);
+                            }
 
-                        using (NpgsqlCommand command = sqlDbHelper.NpgsqlCommand(queryTaskImages))
-                        {
-                            command.Parameters.AddWithValue("@TaskId", taskId);
-                            command.Parameters.AddWithValue("@ImageId", imageId);
-                            var result = command.ExecuteNonQuery();
-                            return result > 0;
+                            // INSERT into task_images
+                            using (var command = sqlDbHelper.NpgsqlCommand(queryInsertTaskImage))
+                            {
+                                command.Parameters.AddWithValue("@TaskId", taskId);
+                                command.Parameters.AddWithValue("@ImageId", imageId);
+                                int result = command.ExecuteNonQuery();
+                                insertSuccess |= result > 0;
+                            }
                         }
                     }
+
+                    return insertSuccess;
                 }
             }
             catch (Exception ex)
             {
                 _errorMessage = ex.Message;
+                return false;
             }
-            return false;
         }
+
 
         public bool updateRoutineTask(RoutineTaskDto task, int taskId)
         {
