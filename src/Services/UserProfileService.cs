@@ -61,7 +61,7 @@ namespace api_cleany_app.src.Services
                 first_name = @firstName,
                 last_name = @lastName,
                 username = @username,
-                password = crypt(@password, gen_salt('bf'))
+                password = crypt(@password, gen_salt('bf')),
                 email = @email,
                 updated_at = NOW()
                 WHERE user_id = @userId";
@@ -90,7 +90,7 @@ namespace api_cleany_app.src.Services
         }
         public bool softDeleteUser(int userId)
         {
-            string query = "UPDATE FROM users SET is_active = false WHERE user_id = @UserId";
+            string query = "UPDATE users SET is_active = false WHERE user_id = @UserId";
 
             try
             {
