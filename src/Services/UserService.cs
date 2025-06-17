@@ -21,7 +21,7 @@ namespace api_cleany_app.src.Services
         public List<User> getAllUser()
         {
             List<User> users = new List<User>();
-            string query = @"SELECT user_id, username, first_name, last_name, email, password, image_url,r.name AS role_name, s.name AS shift_name, created_at, updated_at
+            string query = @"SELECT user_id, username, first_name, last_name, email, password, image_url,r.name AS role_name, s.name AS shift_name, u.created_at, u.updated_at
               FROM users u
               JOIN roles r ON u.role_id = r.role_id
               LEFT JOIN shifts s ON u.shift_id = s.shift_id
@@ -102,7 +102,7 @@ namespace api_cleany_app.src.Services
         public User getUserById(int userId)
         {
             User user = null;
-            string query = @"SELECT user_id, username, first_name, last_name, email, password, image_url,r.name AS role_name, s.name AS shift_name, created_at, updated_at
+            string query = @"SELECT user_id, username, first_name, last_name, email, password, image_url,r.name AS role_name, s.name AS shift_name, u.created_at, u.updated_at
               FROM users u
               JOIN roles r ON u.role_id = r.role_id
               LEFT JOIN shifts s ON u.shift_id = s.shift_id
