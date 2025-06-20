@@ -11,5 +11,7 @@
         public string? CreatedAt { get; set; }
         public string? AssigmentAt { get; set; }
         public string? CompleteAt { get; set; }
+        public string? Latitude { get; set; }
+        public string? Longitude { get; set; }
     }
 }
