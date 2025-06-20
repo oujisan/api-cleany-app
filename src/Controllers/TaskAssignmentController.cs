@@ -255,5 +255,31 @@ namespace api_cleany_app.src.Controllers
                 });
             }
         }
+
+        [HttpPut("update/location/{assignmentId}")]
+        public ActionResult updateLocation(int assignmentId, Location location)
+        {
+            var isUpdated = _service.setLatitudeLongitude(assignmentId, location.latitude, location.longitude);
+            if (isUpdated)
+            {
+                return Ok(new ApiResponse<object>
+                {
+                    Success = true,
+                    Message = "Update location successfull",
+                    Data = null,
+                    Error = null,
+                });
+            }
+            else
+            {
+                return BadRequest(new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = "Failed update location",
+                    Data = null,
+                    Error = _service.getError()
+                });
+            }
+        }
     }
 }

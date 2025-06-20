@@ -754,7 +754,7 @@ namespace api_cleany_app.src.Services
             }
             return false;
         }
-
+               
         public bool updateProofImage(int assignmentId, [FromBody] List<String> imageUrls)
         {
             try
@@ -789,6 +789,29 @@ namespace api_cleany_app.src.Services
 
                         }
                     }
+                }
+            }
+            catch (Exception ex)
+            {
+                _errorMessage = ex.Message;
+            }
+            return false;
+        }
+
+        public bool setLatitudeLongitude(int assignmentId, string latitude, string longitude)
+        {
+            string query = @"UPDATE assignments SET latitude = @Latitude, longitude = @Longitude WHERE assignment_id = @AssignmentId";
+
+            try
+            {
+                using (SqlDbHelper sqlDbHelper = new SqlDbHelper(_connectionString))
+                using (NpgsqlCommand command = sqlDbHelper.NpgsqlCommand(query))
+                {
+                    command.Parameters.AddWithValue("@AssignmentId", assignmentId);
+                    command.Parameters.AddWithValue("@Latitude", latitude);
+                    command.Parameters.AddWithValue("@Longitude", longitude);
+                    var result = command.ExecuteNonQuery();
+                    return result > 0;
                 }
             }
             catch (Exception ex)
