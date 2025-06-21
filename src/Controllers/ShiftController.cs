@@ -98,7 +98,7 @@ namespace api_cleany_app.src.Controllers
         }
 
         [HttpPost("add")]
-        public ActionResult AddShift([FromBody] Shift shift)
+        public ActionResult AddShift([FromBody] ShiftDto shift)
         {
             var success = _shiftService.addShift(shift);
             if (success)
@@ -125,7 +125,7 @@ namespace api_cleany_app.src.Controllers
 
 
         [HttpPut("update/{shiftId}")]
-        public ActionResult UpdateShift(int shiftId, [FromBody] Shift shift)
+        public ActionResult UpdateShift(int shiftId, [FromBody] ShiftDto shift)
         {
            bool _isUpdated = _shiftService.updateShift(shift);
             if (_isUpdated)

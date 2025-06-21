@@ -72,7 +72,7 @@ namespace api_cleany_app.src.Controllers
         }
 
         [HttpPost("add")]
-        public ActionResult addArea([FromBody] Area area)
+        public ActionResult addArea([FromBody] AreaDto area)
         {
             if (area == null)
             {
@@ -107,7 +107,7 @@ namespace api_cleany_app.src.Controllers
             }
         }
         [HttpPut("update/{areaId}")]
-        public ActionResult updateArea(int areaId, [FromBody] Area area)
+        public ActionResult updateArea(int areaId, [FromBody] AreaDto area)
         {
             bool _isUpdated = _service.updateArea(area);
             if (_isUpdated)
