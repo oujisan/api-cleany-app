@@ -148,7 +148,7 @@ namespace api_cleany_app.src.Services
                 INSERT INTO users 
                     (first_name, last_name, username, email, password, image_url, role_id, shift_id) 
                 VALUES
-                    (@firstName, @lastName, @username, @email, crypt(@password, gen_salt('bf')), @imageUrl, @roleId, @shiftId);";
+                    (@firstName, @lastName, @username, @email, @password, @imageUrl, @roleId, @shiftId);";
 
             int? roleId = _roleService.getRoleIdByName(user.Role);
             if (roleId == null)
@@ -168,7 +168,7 @@ namespace api_cleany_app.src.Services
                     command.Parameters.AddWithValue("@lastName", (object?)user.LastName ?? DBNull.Value);
                     command.Parameters.AddWithValue("@username", user.Username);
                     command.Parameters.AddWithValue("@email", user.Email);
-                    command.Parameters.AddWithValue("@password", user.Password);
+                    command.Parameters.AddWithValue("@password", BCrypt.Net.BCrypt.HashPassword(user.Password));
                     command.Parameters.AddWithValue("@imageUrl", (object?)user.ImageUrl ?? DBNull.Value);
                     command.Parameters.AddWithValue("@roleId", roleId.Value);
                     command.Parameters.AddWithValue("@shiftId", (object?)shiftId ?? DBNull.Value);
