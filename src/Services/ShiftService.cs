@@ -106,7 +106,7 @@ namespace api_cleany_app.src.Services
             }
         }
 
-        public bool addShift(Shift shift)
+        public bool addShift(ShiftDto shift)
         {
             string query = @"INSERT INTO shifts (name, start_time, end_time, created_at, updated_at) 
                      VALUES (@name, @startTime, @endTime, @createAt, @updateAt)";
@@ -136,7 +136,7 @@ namespace api_cleany_app.src.Services
         }
 
 
-        public bool updateShift(Shift shift)
+        public bool updateShift(ShiftDto shift)
         {
             string selectQuery = "SELECT start_time, end_time FROM shifts WHERE shift_id = @shiftId";
             string updateQuery = @"UPDATE shifts SET name = @name, start_time = @startTime, end_time = @endTime, updated_at = @updatedAt 
