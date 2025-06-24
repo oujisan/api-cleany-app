@@ -19,6 +19,33 @@ namespace api_cleany_app.src.Controllers
             _configuration = configuration;
         }
 
+        [HttpGet()]
+        public ActionResult<List<UserProfile>> GetUser()
+        {
+            var user = _service.GetAllUserProfile();
+
+            if (user != null)
+            {
+                return Ok(new ApiResponse<List<UserProfile>>
+                {
+                    Success = true,
+                    Message = $"Get user profile successfull.",
+                    Data = user,
+                    Error = null,
+                });
+            }
+            else
+            {
+                return BadRequest(new ApiResponse<List<UserProfile>>
+                {
+                    Success = false,
+                    Message = $"Failed to fetch user data with id",
+                    Data = null,
+                    Error = _service.getError(),
+                });
+            }
+        }
+
         [HttpGet("{userId}")]
         public ActionResult<UserProfile> GetUser(int userId)
         {

@@ -172,7 +172,9 @@ namespace api_cleany_app.src.Services
                 COALESCE(img_asn.images_url, '') AS proof_images_url, 
                 t.created_at,
                 asn.assignment_at, 
-                asn.complete_at
+                asn.complete_at,
+                asn.latitude,
+                asn.longitude
             FROM assignments asn
             LEFT JOIN tasks t ON t.task_id = asn.task_id
             LEFT JOIN users u1 ON u1.user_id = asn.worked_by
@@ -220,7 +222,9 @@ namespace api_cleany_app.src.Services
                                 ProofImageUrl = reader.IsDBNull(13) ? null : reader.GetString(13).Split(',').ToList(),
                                 CreatedAt = reader.GetDateTime(14).ToString("dd-MM-yyyy HH:mm:ss"),
                                 AssigmentAt = reader.IsDBNull(15) ? null : reader.GetDateTime(15).ToString("dd-MM-yyyy HH:mm:ss"),
-                                CompleteAt = reader.IsDBNull(16) ? null : reader.GetDateTime(16).ToString("dd-MM-yyyy HH:mm:ss")
+                                CompleteAt = reader.IsDBNull(16) ? null : reader.GetDateTime(16).ToString("dd-MM-yyyy HH:mm:ss"),
+                                Latitude = reader.IsDBNull(17) ? null : reader.GetString(17),
+                                Longitude = reader.IsDBNull(18) ? null : reader.GetString(18)
                             });
                         }
                     }
@@ -271,7 +275,9 @@ namespace api_cleany_app.src.Services
                 COALESCE(img_asn.images_url, '') AS proof_images_url, 
                 t.created_at,
                 asn.assignment_at, 
-                asn.complete_at
+                asn.complete_at,
+                asn.latitude,
+                asn.longitude
             FROM assignments asn
                 LEFT JOIN tasks t ON t.task_id = asn.task_id
                 LEFT JOIN users u1 ON u1.user_id = asn.worked_by
@@ -322,7 +328,9 @@ namespace api_cleany_app.src.Services
                                     ProofImageUrl = reader.IsDBNull(13) ? null : reader.GetString(13).Split(',').ToList(),
                                     CreatedAt = reader.GetDateTime(14).ToString("dd-MM-yyyy HH:mm:ss"),
                                     AssigmentAt = reader.IsDBNull(15) ? null : reader.GetDateTime(15).ToString("dd-MM-yyyy HH:mm:ss"),
-                                    CompleteAt = reader.IsDBNull(16) ? null : reader.GetDateTime(16).ToString("dd-MM-yyyy HH:mm:ss")
+                                    CompleteAt = reader.IsDBNull(16) ? null : reader.GetDateTime(16).ToString("dd-MM-yyyy HH:mm:ss"),
+                                    Latitude = reader.IsDBNull(17) ? null : reader.GetString(17),
+                                    Longitude = reader.IsDBNull(18) ? null : reader.GetString(18)
                                 });
                             }
                         }
@@ -445,6 +453,8 @@ namespace api_cleany_app.src.Services
                                 CreatedAt = reader.GetDateTime(19).ToString("dd-MM-yyyy HH:mm:ss"),
                                 AssigmentAt = reader.IsDBNull(20) ? null : reader.GetDateTime(20).ToString("dd-MM-yyyy HH:mm:ss"),
                                 CompleteAt = reader.IsDBNull(21) ? null : reader.GetDateTime(21).ToString("dd-MM-yyyy HH:mm:ss"),
+                                Latitude = null,
+                                Longitude = null
                             });
                         }
                     }
@@ -509,7 +519,9 @@ namespace api_cleany_app.src.Services
                 asn.status,
                 t.created_at,
                 asn.assignment_at, 
-                asn.complete_at
+                asn.complete_at,
+                asn.latitude,
+                asn.longitude
             FROM assignments asn
                 LEFT JOIN tasks t ON t.task_id = asn.task_id
                 LEFT JOIN image_agg ia ON ia.task_id = t.task_id
@@ -567,6 +579,8 @@ namespace api_cleany_app.src.Services
                                 CreatedAt = reader.GetDateTime(19).ToString("dd-MM-yyyy HH:mm:ss"),
                                 AssigmentAt = reader.IsDBNull(20) ? null : reader.GetDateTime(20).ToString("dd-MM-yyyy HH:mm:ss"),
                                 CompleteAt = reader.IsDBNull(21) ? null : reader.GetDateTime(21).ToString("dd-MM-yyyy HH:mm:ss"),
+                                Latitude = reader.IsDBNull(22) ? null : reader.GetString(22),
+                                Longitude = reader.IsDBNull(23) ? null : reader.GetString(23)
                             };
                         }
                     }
@@ -740,7 +754,7 @@ namespace api_cleany_app.src.Services
             }
             return false;
         }
-
+               
         public bool updateProofImage(int assignmentId, [FromBody] List<String> imageUrls)
         {
             try
@@ -775,6 +789,29 @@ namespace api_cleany_app.src.Services
 
                         }
                     }
+                }
+            }
+            catch (Exception ex)
+            {
+                _errorMessage = ex.Message;
+            }
+            return false;
+        }
+
+        public bool setLatitudeLongitude(int assignmentId, string latitude, string longitude)
+        {
+            string query = @"UPDATE assignments SET latitude = @Latitude, longitude = @Longitude WHERE assignment_id = @AssignmentId";
+
+            try
+            {
+                using (SqlDbHelper sqlDbHelper = new SqlDbHelper(_connectionString))
+                using (NpgsqlCommand command = sqlDbHelper.NpgsqlCommand(query))
+                {
+                    command.Parameters.AddWithValue("@AssignmentId", assignmentId);
+                    command.Parameters.AddWithValue("@Latitude", latitude);
+                    command.Parameters.AddWithValue("@Longitude", longitude);
+                    var result = command.ExecuteNonQuery();
+                    return result > 0;
                 }
             }
             catch (Exception ex)

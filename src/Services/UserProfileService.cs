@@ -14,6 +14,51 @@ namespace api_cleany_app.src.Services
             _connectionString = DbConfig.ConnectionString;
         }
 
+        public List<UserProfile> GetAllUserProfile()
+        {
+            List<UserProfile> users = new List<UserProfile>();
+            string query = @"SELECT 
+                        u.username, 
+                        u.first_name, 
+                        u.last_name, 
+                        u.email, 
+                        u.image_url, 
+                        r.name AS role_name, 
+                        s.name AS shift_name
+                     FROM users u
+                     JOIN roles r ON u.role_id = r.role_id
+                     LEFT JOIN shifts s ON u.shift_id = s.shift_id";
+
+            try
+            {
+                using (SqlDbHelper sqlDbHelper = new SqlDbHelper(_connectionString))
+                using (NpgsqlCommand command = sqlDbHelper.NpgsqlCommand(query))
+                using (NpgsqlDataReader reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        users.Add(new UserProfile()
+                        {
+                            Username = reader["username"].ToString(),
+                            FirstName = reader["first_name"].ToString(),
+                            LastName = reader.IsDBNull(reader.GetOrdinal("last_name")) ? string.Empty : reader["last_name"].ToString(),
+                            Email = reader["email"].ToString(),
+                            ImageUrl = reader.IsDBNull(reader.GetOrdinal("image_url")) ? string.Empty : reader["image_url"].ToString(),
+                            Role = reader["role_name"].ToString(),
+                            Shift = reader.IsDBNull(reader.GetOrdinal("shift_name")) ? null : reader["shift_name"].ToString()
+                        });
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _errorMessage = ex.Message;
+                return new List<UserProfile>();
+            }
+
+            return users;
+        }
+
         public UserProfile getUserProfile(int userId)
         {
             UserProfile user = null;

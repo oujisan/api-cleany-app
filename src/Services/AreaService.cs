@@ -80,7 +80,7 @@ namespace api_cleany_app.src.Services
             return area;
         }
 
-        public bool addArea(Area area)
+        public bool addArea(AreaDto area)
         {
             string query = @"INSERT INTO areas (name, floor, building) VALUES (@name, @floor, @building)";
             using (SqlDbHelper sqlDbHelper = new SqlDbHelper(_connectionString))
@@ -102,7 +102,7 @@ namespace api_cleany_app.src.Services
             return false;
         }
 
-        public bool updateArea(Area area)
+        public bool updateArea(AreaDto area)
         {
             string query = @"UPDATE areas SET name = @name, floor = @floor, building = @building, updated_at = NOW() WHERE area_id = @areaId";
             using (SqlDbHelper sqlDbHelper = new SqlDbHelper(_connectionString))
