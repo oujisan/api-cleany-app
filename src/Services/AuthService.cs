@@ -95,7 +95,7 @@ namespace api_cleany_app.src.Services
                         command.Parameters.AddWithValue("@username", user.Username);
                         command.Parameters.AddWithValue("@email", user.Email);
                         command.Parameters.AddWithValue("@password", BCrypt.Net.BCrypt.HashPassword(user.Password));
-                        command.Parameters.AddWithValue("@roleId", 3);
+                        command.Parameters.AddWithValue("@roleId", 4);
 
                         int rowsAffected = command.ExecuteNonQuery();
                         if (rowsAffected > 0)
