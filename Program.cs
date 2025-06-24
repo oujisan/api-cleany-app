@@ -21,6 +21,16 @@ builder.Services.AddScoped<TaskAssignmentService>();
 builder.Services.AddScoped<AreaService>();
 builder.Services.AddScoped<VerificationService>();
 builder.Services.AddScoped<UserProfileService>();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", builder =>
+    {
+        builder
+            .AllowAnyOrigin()
+            .AllowAnyMethod()
+            .AllowAnyHeader();
+    });
+});
 
 
 builder.Services.AddControllers();
@@ -97,6 +107,8 @@ else
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseCors("AllowAll");
 
 
 app.UseHttpsRedirection();
