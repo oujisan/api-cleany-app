@@ -87,7 +87,8 @@ namespace api_cleany_app.src.Services
                                     Email = reader.GetString(3),
                                     ImageUrl = reader.IsDBNull(4) ? string.Empty : reader.GetString(4),
                                     Role = reader.GetString(5),
-                                    Shift = reader.GetString(5) != "cleaner" ? null : reader.GetString(6),
+                                    Shift = reader.GetString(5) != "cleaner" || reader.IsDBNull(6) ? null : reader.GetString(6),
+
                                 };
                             }
                         }
@@ -102,16 +103,19 @@ namespace api_cleany_app.src.Services
 
         public bool updateUserProfile(UserProfile user, int userId)
         {
+            var updatePassword = !string.IsNullOrWhiteSpace(user.Password);
+
             string query = @"UPDATE users SET
-                first_name = @firstName,
-                last_name = @lastName,
-                username = @username,
-                password = crypt(@password, gen_salt('bf')),
-                email = @email,
-                updated_at = NOW()
-                WHERE user_id = @userId";
+        first_name = @firstName,
+        last_name = @lastName,
+        username = @username," +
+                (updatePassword ? " password = crypt(@password, gen_salt('bf'))," : "") + @"
+        email = @email,
+        updated_at = NOW()
+        WHERE user_id = @userId";
 
             using (SqlDbHelper sqlDbHelper = new SqlDbHelper(_connectionString))
+            {
                 try
                 {
                     using (NpgsqlCommand command = sqlDbHelper.NpgsqlCommand(query))
@@ -119,9 +123,13 @@ namespace api_cleany_app.src.Services
                         command.Parameters.AddWithValue("userId", userId);
                         command.Parameters.AddWithValue("firstName", user.FirstName);
                         command.Parameters.AddWithValue("lastName", (object?)user.LastName ?? DBNull.Value);
-                        command.Parameters.AddWithValue("password", user.Password);
                         command.Parameters.AddWithValue("username", user.Username);
                         command.Parameters.AddWithValue("email", user.Email);
+
+                        if (updatePassword)
+                        {
+                            command.Parameters.AddWithValue("password", user.Password);
+                        }
 
                         var result = command.ExecuteNonQuery();
                         return result > 0;
@@ -131,8 +139,10 @@ namespace api_cleany_app.src.Services
                 {
                     _errorMessage = e.Message;
                 }
+            }
             return false;
         }
+
         public bool softDeleteUser(int userId)
         {
             string query = "UPDATE users SET is_active = false WHERE user_id = @UserId";
